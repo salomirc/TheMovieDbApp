@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="purple_200">#D81B60</color>
+    <color name="purple_500">#2598F3</color>
+    <color name="purple_700">#2598F3</color>
+    <color name="teal_200">#D81B60</color>
+    <color name="teal_700">#2598F3</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+
+    <color name="splash_background">#ffffff</color>
+    <color name="colorRootLayout">#ffffff</color>
+    <color name="colorHeaderIDontKonwPump">#f5f5f5</color>
+    <color name="colorSearchBar">#e5e5e7</color>
+    <color name="dont_know_pump_item_separator">#c5c6c8</color>
+</resources>

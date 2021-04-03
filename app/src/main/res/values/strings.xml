@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">TheMovieDbApp</string>
+    <string name="the_movie_db_search">The Movie Db Search</string>
+    <string name="search">Search</string>
+    <string name="back_arrow">Back arrow</string>
+    <string name="no_internet_connection">No internet connection!</string>
+    <string name="something_went_wrong">Sorry… something went wrong.</string>
+</resources>
