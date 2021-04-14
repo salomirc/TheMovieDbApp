@@ -9,6 +9,7 @@ import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import androidx.databinding.DataBindingUtil
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.belsoft.themoviedbapp.databinding.ActivityMainBinding
 import com.belsoft.themoviedbapp.utils.InjectorUtils
@@ -75,7 +76,7 @@ class MainActivity : BaseActivity() {
 
     private fun initializeUI() {
         //SingleEvent received from ViewModel
-        viewModel.toastMessage.observe(this, { message ->
+        viewModel.toastMessage.observe(this, Observer { message ->
             // Update the cached copy of the words in the adapter.
             message?.let {
                 displayToastMessage(this, resources.getString(it))
@@ -83,7 +84,7 @@ class MainActivity : BaseActivity() {
         })
 
         //SingleEvent received from ViewModel
-        viewModel.toastMessageString.observe(this, { message ->
+        viewModel.toastMessageString.observe(this, Observer { message ->
             // Update the cached copy of the words in the adapter.
             message?.let {
                 displayToastMessage(this, it)
