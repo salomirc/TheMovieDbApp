@@ -1,12 +1,11 @@
 package com.belsoft.themoviedbapp.utils
 
 import android.app.Application
-import android.content.Context
 import com.belsoft.themoviedbapp.MainViewModel
 import com.belsoft.themoviedbapp.services.RequestHelper
 import com.belsoft.themoviedbapp.ui.search.SearchViewModel
 
-class InjectorUtils private constructor(private val appContext: Application) {
+class InjectorUtils private constructor(appContext: Application) {
 
     companion object {
         @Volatile
@@ -29,7 +28,7 @@ class InjectorUtils private constructor(private val appContext: Application) {
 
     fun provideSearchViewModelFactory(mainViewModel: MainViewModel): ViewModelFactory<SearchViewModel> {
         return ViewModelFactory {
-            SearchViewModel(mainViewModel, requestHelper, appContext)
+            SearchViewModel(mainViewModel, requestHelper)
         }
     }
 }

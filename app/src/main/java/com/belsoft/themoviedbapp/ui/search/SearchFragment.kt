@@ -79,34 +79,34 @@ class SearchFragment : HideKeyboardReadyFragment() {
     }
 
     private fun initializeUI() {
+        binding.apply {
+            recyclerView.apply {
+                // Plug in the linear layout manager:
+                layoutManager = LinearLayoutManager(activity)
 
-        // Plug in the linear layout manager:
-        val layoutManager = LinearLayoutManager(activity)
-        binding.recyclerView.layoutManager = layoutManager
+                // Plug in my adapter:
+                adapter = SearchListAdapter {
 
-        // Plug in my adapter:
-        val adapter = SearchListAdapter {
-
-        }
-        binding.recyclerView.adapter = adapter
-        binding.recyclerView.setHasFixedSize(true)
-
-        //Set Observer for RecyclerView source list
-        viewModel.searchSelectItems.observe(viewLifecycleOwner, Observer { itemList ->
-            // Update the cached copy of the words in the adapter.
-            itemList?.let { adapter.submitList(it) }
-        })
-
-        binding.backImageButton.setOnClickListener {
-            if (isRunning)
-                return@setOnClickListener
-            isRunning = true
-            if (MainActivity.isKeyboardOnScreen()){
-                hideSoftKeyboard(binding.searchView)
-                binding.searchView.clearFocus()
+                }
+                setHasFixedSize(true)
+                //Set Observer for RecyclerView source list
+                viewModel.searchSelectItems.observe(viewLifecycleOwner, Observer { itemList ->
+                    // Update the cached copy of the words in the adapter.
+                    itemList?.let { (adapter as SearchListAdapter).submitList(it) }
+                })
             }
-            activity!!.onBackPressed()
-            isRunning = false
+
+            backImageButton.setOnClickListener {
+                if (isRunning)
+                    return@setOnClickListener
+                isRunning = true
+                if (MainActivity.isKeyboardOnScreen()){
+                    hideSoftKeyboard(binding.searchView)
+                    binding.searchView.clearFocus()
+                }
+                activity!!.onBackPressed()
+                isRunning = false
+            }
         }
 
         searchViewHide?.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
@@ -140,7 +140,7 @@ class SearchFragment : HideKeyboardReadyFragment() {
 
                     job = launch {
                         try {
-                            getData(searchFor)
+                            viewModel.getData(searchFor)
                         }
                         catch (e: CancellationException) {
                             Log.d(TAG, "Coroutine cancelled - ${e.message}")
@@ -163,31 +163,6 @@ class SearchFragment : HideKeyboardReadyFragment() {
                 if (v != null) showSoftKeyboard(v.findFocus())
             }
         }
-
         searchViewHide?.requestFocus()
-
-    }
-
-    private suspend fun getData(search: String) {
-        if (viewModel.requestHelper.hasInternetConnection()) {
-            viewModel.isVisibleProgressBar.value = true
-
-            val result: MovieDbResponseModel? = withContext(Dispatchers.IO) {
-                viewModel.requestHelper.getMovieDbSearch(API_KEY, search)
-            }
-
-            if (result != null) {
-                val itemList = result.results.map {
-                    it.asViewModel()
-                }
-                viewModel.searchSelectItems.value = itemList
-                viewModel.isVisibleProgressBar.value = false
-            } else {
-                viewModel.mainViewModel.toastMessage.value = R.string.something_went_wrong
-            }
-        }
-        else {
-            viewModel.mainViewModel.toastMessage.value = R.string.no_internet_connection
-        }
     }
 }
