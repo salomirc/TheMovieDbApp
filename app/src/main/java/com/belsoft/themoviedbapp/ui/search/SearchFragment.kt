@@ -1,5 +1,6 @@
 package com.belsoft.themoviedbapp.ui.search
 
+import android.app.Application
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -17,10 +18,17 @@ import com.belsoft.themoviedbapp.MainActivity.Companion.hideSoftKeyboard
 import com.belsoft.themoviedbapp.MainActivity.Companion.showSoftKeyboard
 import com.belsoft.themoviedbapp.R
 import com.belsoft.themoviedbapp.adapters.SearchListAdapter
+import com.belsoft.themoviedbapp.api.API_KEY
 import com.belsoft.themoviedbapp.components.HideKeyboardReadyFragment
 import com.belsoft.themoviedbapp.databinding.SearchFragmentBinding
+import com.belsoft.themoviedbapp.models.api.MovieDbResponseModel
+import com.belsoft.themoviedbapp.models.asViewModel
 import com.belsoft.themoviedbapp.utils.InjectorUtils
+import com.belsoft.themoviedbapp.utils.onQueryTextChange
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 
 class SearchFragment : HideKeyboardReadyFragment() {
 
@@ -62,11 +70,15 @@ class SearchFragment : HideKeyboardReadyFragment() {
         searchViewHide = null
     }
 
+    @FlowPreview
+    @ExperimentalCoroutinesApi
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         initializeUI()
     }
 
+    @FlowPreview
+    @ExperimentalCoroutinesApi
     private fun initializeUI() {
         binding.apply {
             recyclerView.apply {
@@ -98,53 +110,11 @@ class SearchFragment : HideKeyboardReadyFragment() {
             }
         }
 
-        searchViewHide?.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-
-            private var job: Job? = null
-            private var searchFor = ""
-
-            override fun onQueryTextSubmit(query: String?): Boolean {
-                return false
-            }
-
-            override fun onQueryTextChange(newText: String?): Boolean {
-
-                val searchText = newText.toString().trim()
-                searchFor = searchText
-
-                if (searchFor == ""){
-                    viewModel.setSearchSelectItems(listOf())
-                    cancelJob()
-                    viewModel.isVisibleProgressBar.value = false
-                    return false
-                }
-
-                viewModel.viewModelScope.launch {
-                    delay(500)  //debounce timeOut
-                    if (searchFor != searchText)
-                        return@launch
-
-                    // do our magic here
-                    cancelJob()
-
-                    job = launch {
-                        try {
-                            viewModel.getData(searchFor)
-                        }
-                        catch (e: CancellationException) {
-                            Log.d(TAG, "Coroutine cancelled - ${e.message}")
-                        }
-                    }
-                }
-                return false
-            }
-
-            private fun cancelJob() {
-                job?.let { it ->
-                    if (it.isActive) it.cancel()
-                }
-            }
-        })
+        searchViewHide?.
+        onQueryTextChange(viewModel)?.
+        debounce(1000)?.
+        onEach { viewModel.getData(it) }?.
+        launchIn(viewModel.viewModelScope)
 
 
         searchViewHide?.setOnQueryTextFocusChangeListener { v, hasFocus ->

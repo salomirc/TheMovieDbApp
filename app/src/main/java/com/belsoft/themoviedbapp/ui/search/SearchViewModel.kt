@@ -7,7 +7,6 @@ import com.belsoft.themoviedbapp.IMainViewModel
 import com.belsoft.themoviedbapp.R
 import com.belsoft.themoviedbapp.api.API_KEY
 import com.belsoft.themoviedbapp.models.SearchSelectItemModel
-import com.belsoft.themoviedbapp.models.api.MovieDbResponseModel
 import com.belsoft.themoviedbapp.models.asViewModel
 import com.belsoft.themoviedbapp.services.IRequestHelper
 import kotlinx.coroutines.Dispatchers
@@ -20,17 +19,21 @@ class SearchViewModel(private val mainViewModel: IMainViewModel,
     val searchSelectItems: LiveData<List<SearchSelectItemModel>> = _searchSelectItems
 
     fun setSearchSelectItems(searchSelectItems: List<SearchSelectItemModel>) {
-        _searchSelectItems.postValue(searchSelectItems)
+        _searchSelectItems.value = searchSelectItems
     }
 
-    suspend fun getData(search: String) {
+    suspend fun getData(search: String?) {
         if (!requestHelper.hasInternetConnection()) {
             mainViewModel.toastMessage.value = R.string.no_internet_connection
             return
         }
 
+        if (search.isNullOrEmpty()) {
+            return
+        }
+
         isVisibleProgressBar.value = true
-        val result: MovieDbResponseModel? = withContext(Dispatchers.IO) {
+        val result = withContext(Dispatchers.IO) {
             requestHelper.getMovieDbSearch(API_KEY, search)
         }
 
@@ -39,9 +42,9 @@ class SearchViewModel(private val mainViewModel: IMainViewModel,
                 it.asViewModel()
             }
             _searchSelectItems.value = itemList
-            isVisibleProgressBar.value = false
         } ?: run {
             mainViewModel.toastMessage.value = R.string.something_went_wrong
         }
+        isVisibleProgressBar.value = false
     }
 }
