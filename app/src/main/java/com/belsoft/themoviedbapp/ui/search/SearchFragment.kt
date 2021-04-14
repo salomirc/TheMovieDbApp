@@ -124,7 +124,7 @@ class SearchFragment : HideKeyboardReadyFragment() {
                 searchFor = searchText
 
                 if (searchFor == ""){
-                    viewModel.searchSelectItems.value = mutableListOf()
+                    viewModel.setSearchSelectItems(listOf())
                     cancelJob()
                     viewModel.isVisibleProgressBar.value = false
                     return false

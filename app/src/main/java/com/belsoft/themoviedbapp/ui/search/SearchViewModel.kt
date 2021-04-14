@@ -1,5 +1,6 @@
 package com.belsoft.themoviedbapp.ui.search
 
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.belsoft.themoviedbapp.BaseViewModel
 import com.belsoft.themoviedbapp.IMainViewModel
@@ -15,8 +16,12 @@ import kotlinx.coroutines.withContext
 class SearchViewModel(private val mainViewModel: IMainViewModel,
                       private val requestHelper: IRequestHelper) : BaseViewModel() {
 
-    var searchSelectItemsListForSearch = mutableListOf<SearchSelectItemModel>()
-    val searchSelectItems = MutableLiveData<List<SearchSelectItemModel>>().apply { value = listOf() }
+    private val _searchSelectItems = MutableLiveData<List<SearchSelectItemModel>>()
+    val searchSelectItems: LiveData<List<SearchSelectItemModel>> = _searchSelectItems
+
+    fun setSearchSelectItems(searchSelectItems: List<SearchSelectItemModel>) {
+        _searchSelectItems.postValue(searchSelectItems)
+    }
 
     suspend fun getData(search: String) {
         if (!requestHelper.hasInternetConnection()) {
@@ -33,7 +38,7 @@ class SearchViewModel(private val mainViewModel: IMainViewModel,
             val itemList = result.results.map {
                 it.asViewModel()
             }
-            searchSelectItems.value = itemList
+            _searchSelectItems.value = itemList
             isVisibleProgressBar.value = false
         } ?: run {
             mainViewModel.toastMessage.value = R.string.something_went_wrong
