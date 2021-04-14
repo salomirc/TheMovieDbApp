@@ -1,5 +1,6 @@
 package com.belsoft.themoviedbapp
 
+import android.app.Application
 import android.content.Context
 import android.graphics.Rect
 import android.os.Bundle
@@ -57,7 +58,7 @@ class MainActivity : BaseActivity() {
     private fun setArchitectureComponents() {
 
         // Get the MainViewModelFactory with all of it's dependencies constructed
-        val factory = InjectorUtils.getInstance(applicationContext).provideMainViewModelFactory()
+        val factory = InjectorUtils.getInstance(applicationContext as Application).provideMainViewModelFactory()
 
         // Obtain the ViewModel component.
         viewModel = ViewModelProvider(this, factory).get(MainViewModel::class.java)

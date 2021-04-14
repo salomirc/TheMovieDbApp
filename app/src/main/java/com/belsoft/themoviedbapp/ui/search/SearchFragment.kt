@@ -1,5 +1,6 @@
 package com.belsoft.themoviedbapp.ui.search
 
+import android.app.Application
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -20,6 +21,7 @@ import com.belsoft.themoviedbapp.adapters.SearchListAdapter
 import com.belsoft.themoviedbapp.api.API_KEY
 import com.belsoft.themoviedbapp.components.HideKeyboardReadyFragment
 import com.belsoft.themoviedbapp.databinding.SearchFragmentBinding
+import com.belsoft.themoviedbapp.models.api.MovieDbResponseModel
 import com.belsoft.themoviedbapp.models.asViewModel
 import com.belsoft.themoviedbapp.utils.InjectorUtils
 import kotlinx.coroutines.*
@@ -66,7 +68,7 @@ class SearchFragment : HideKeyboardReadyFragment() {
     private fun setArchitectureComponents() {
 
         // Get the LoginViewModelFactory with all of it's dependencies constructed
-        val factory = InjectorUtils.getInstance(requireActivity().applicationContext).
+        val factory = InjectorUtils.getInstance(requireActivity().applicationContext as Application).
         provideSearchViewModelFactory(mainViewModel)
 
         // Use ViewModelProviders class to create/get already created ViewModel
@@ -170,7 +172,7 @@ class SearchFragment : HideKeyboardReadyFragment() {
         if (viewModel.requestHelper.hasInternetConnection()) {
             viewModel.isVisibleProgressBar.value = true
 
-            val result = withContext(Dispatchers.IO) {
+            val result: MovieDbResponseModel? = withContext(Dispatchers.IO) {
                 viewModel.requestHelper.getMovieDbSearch(API_KEY, search)
             }
 
