@@ -67,9 +67,8 @@ class SearchFragment : HideKeyboardReadyFragment() {
 
     private fun setArchitectureComponents() {
 
-        // Get the LoginViewModelFactory with all of it's dependencies constructed
-        val factory = InjectorUtils.getInstance(requireActivity().applicationContext as Application).
-        provideSearchViewModelFactory(mainViewModel)
+        // Get the ViewModelFactory with all of it's dependencies constructed
+        val factory = InjectorUtils.lateInstance.provideSearchViewModelFactory(mainViewModel)
 
         // Use ViewModelProviders class to create/get already created ViewModel
         viewModel = ViewModelProvider(this, factory).get(SearchViewModel::class.java)

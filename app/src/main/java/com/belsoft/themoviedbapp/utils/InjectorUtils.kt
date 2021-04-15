@@ -11,9 +11,15 @@ class InjectorUtils private constructor(appContext: Application) {
         @Volatile
         private var instance: InjectorUtils? = null
 
+        @Volatile
+        lateinit var lateInstance: InjectorUtils
+
         fun getInstance(appContext: Application): InjectorUtils {
             return instance ?: synchronized(this) {
-                instance ?: InjectorUtils(appContext).also { instance = it }
+                instance ?: InjectorUtils(appContext).also {
+                    instance = it
+                    lateInstance = it
+                }
             }
         }
     }
