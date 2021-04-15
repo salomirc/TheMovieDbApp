@@ -16,9 +16,7 @@ fun SearchView.onQueryTextChange(viewModel: SearchViewModel): Flow<String?> = ca
 
         override fun onQueryTextChange(newText: String?): Boolean {
             if (newText.isNullOrEmpty()) {
-                viewModel.apply {
-                    setSearchSelectItems(listOf())
-                }
+                viewModel.setSearchSelectItems(listOf())
             }
             offer(newText)
             return false
