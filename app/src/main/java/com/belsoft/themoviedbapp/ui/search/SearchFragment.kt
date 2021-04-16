@@ -71,17 +71,12 @@ class SearchFragment : HideKeyboardReadyFragment() {
     private fun initializeUI() {
         binding.apply {
             recyclerView.apply {
-                // Plug in the linear layout manager:
                 layoutManager = LinearLayoutManager(activity)
-
-                // Plug in my adapter:
                 adapter = SearchListAdapter {
 
                 }
                 setHasFixedSize(true)
-                //Set Observer for RecyclerView source list
                 viewModel.searchSelectItems.observe(viewLifecycleOwner, Observer { itemList ->
-                    // Update the cached copy of the words in the adapter.
                     itemList?.let { (adapter as SearchListAdapter).submitList(it) }
                 })
             }
