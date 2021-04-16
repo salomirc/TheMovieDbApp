@@ -48,11 +48,12 @@ class SearchFragment : HideKeyboardReadyFragment() {
         binding = DataBindingUtil.inflate(layoutInflater, R.layout.search_fragment, container, false)
         binding.lifecycleOwner = this
         binding.viewmodel = viewModel
-        return binding.root.apply {
-            searchListRecyclerViewHide = binding.recyclerView
-            searchViewHide = binding.searchView
+        binding.apply {
+            searchListRecyclerViewHide = recyclerView
+            searchViewHide = searchView
             binding.backImageButton.visibility = View.INVISIBLE
         }
+        return binding.root
     }
 
     override fun onDestroyView() {
