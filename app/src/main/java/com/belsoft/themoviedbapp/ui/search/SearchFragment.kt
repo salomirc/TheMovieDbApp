@@ -1,6 +1,5 @@
 package com.belsoft.themoviedbapp.ui.search
 
-import android.app.Application
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -18,11 +17,8 @@ import com.belsoft.themoviedbapp.MainActivity.Companion.hideSoftKeyboard
 import com.belsoft.themoviedbapp.MainActivity.Companion.showSoftKeyboard
 import com.belsoft.themoviedbapp.R
 import com.belsoft.themoviedbapp.adapters.SearchListAdapter
-import com.belsoft.themoviedbapp.api.API_KEY
 import com.belsoft.themoviedbapp.components.HideKeyboardReadyFragment
 import com.belsoft.themoviedbapp.databinding.SearchFragmentBinding
-import com.belsoft.themoviedbapp.models.api.MovieDbResponseModel
-import com.belsoft.themoviedbapp.models.asViewModel
 import com.belsoft.themoviedbapp.utils.InjectorUtils
 import kotlinx.coroutines.*
 
@@ -41,10 +37,17 @@ class SearchFragment : HideKeyboardReadyFragment() {
         val TAG = SearchFragment::class.simpleName
     }
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        val factory = InjectorUtils.getInstance.provideSearchViewModelFactory(mainViewModel)
+        viewModel = ViewModelProvider(this, factory).get(SearchViewModel::class.java)
+    }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View {
         binding = DataBindingUtil.inflate(layoutInflater, R.layout.search_fragment, container, false)
         binding.lifecycleOwner = this
+        binding.viewmodel = viewModel
         return binding.root.apply {
             searchListRecyclerViewHide = binding.recyclerView
             searchViewHide = binding.searchView
@@ -61,20 +64,7 @@ class SearchFragment : HideKeyboardReadyFragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        setArchitectureComponents()
         initializeUI()
-    }
-
-    private fun setArchitectureComponents() {
-
-        // Get the ViewModelFactory with all of it's dependencies constructed
-        val factory = InjectorUtils.lateInstance.provideSearchViewModelFactory(mainViewModel)
-
-        // Use ViewModelProviders class to create/get already created ViewModel
-        viewModel = ViewModelProvider(this, factory).get(SearchViewModel::class.java)
-
-        // Assign the component to a property in the binding class.
-        binding.viewmodel = viewModel
     }
 
     private fun initializeUI() {

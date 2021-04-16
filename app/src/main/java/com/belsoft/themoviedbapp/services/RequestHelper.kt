@@ -5,9 +5,11 @@ import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
+import android.util.Log
 import com.belsoft.themoviedbapp.api.ImageTmdbApi
 import com.belsoft.themoviedbapp.api.TheMovieDbApi
 import com.belsoft.themoviedbapp.models.api.MovieDbResponseModel
+import com.belsoft.themoviedbapp.ui.search.SearchFragment
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -17,11 +19,12 @@ const val API_THE_MOVIE_DB_URL = "https://api.themoviedb.org/"
 const val IMAGE_TMDB_URL = "https://image.tmdb.org/t/p/"
 const val LOGO_SIZE = "w185"
 
-class RequestHelper private constructor(private val appContext: Application) : IRequestHelper {
+class RequestHelper private constructor(private val appContext: Application) : HelperBase(), IRequestHelper {
 
     companion object {
         @Volatile
         private var instance: RequestHelper? = null
+        private val TAG = RequestHelper::class.simpleName
 
         fun getInstance(appContext: Application): RequestHelper {
             return instance ?: synchronized(this) {
@@ -60,7 +63,7 @@ class RequestHelper private constructor(private val appContext: Application) : I
         }
         catch (e: Exception)
         {
-            println("Exception : ${e.message}")
+            logError(TAG, e)
         }
 
         return false
@@ -95,7 +98,7 @@ class RequestHelper private constructor(private val appContext: Application) : I
             }
         }
         catch (e: Exception){
-            println("Exception : ${e.message}")
+            logError(TAG, e)
         }
         return null
     }
@@ -107,7 +110,7 @@ class RequestHelper private constructor(private val appContext: Application) : I
             }
         }
         catch (e: Exception){
-            println("Exception : ${e.message}")
+            logError(TAG, e)
         }
         return null
     }
