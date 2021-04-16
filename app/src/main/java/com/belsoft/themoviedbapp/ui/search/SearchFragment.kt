@@ -1,8 +1,6 @@
 package com.belsoft.themoviedbapp.ui.search
 
-import android.app.Application
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -18,11 +16,8 @@ import com.belsoft.themoviedbapp.MainActivity.Companion.hideSoftKeyboard
 import com.belsoft.themoviedbapp.MainActivity.Companion.showSoftKeyboard
 import com.belsoft.themoviedbapp.R
 import com.belsoft.themoviedbapp.adapters.SearchListAdapter
-import com.belsoft.themoviedbapp.api.API_KEY
 import com.belsoft.themoviedbapp.components.HideKeyboardReadyFragment
 import com.belsoft.themoviedbapp.databinding.SearchFragmentBinding
-import com.belsoft.themoviedbapp.models.api.MovieDbResponseModel
-import com.belsoft.themoviedbapp.models.asViewModel
 import com.belsoft.themoviedbapp.utils.InjectorUtils
 import com.belsoft.themoviedbapp.utils.onQueryTextChange
 import kotlinx.coroutines.*
