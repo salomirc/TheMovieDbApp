@@ -8,9 +8,11 @@ import android.os.Build
 import com.belsoft.themoviedbapp.api.ImageTmdbApi
 import com.belsoft.themoviedbapp.api.TheMovieDbApi
 import com.belsoft.themoviedbapp.models.api.MovieDbResponseModel
+import kotlinx.coroutines.delay
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.io.IOException
 import java.util.concurrent.TimeUnit
 
 const val API_THE_MOVIE_DB_URL = "https://api.themoviedb.org/"
@@ -88,15 +90,11 @@ class RequestHelper private constructor(private val appContext: Application) : H
     private val theMovieDbApi: TheMovieDbApi by lazy { retrofitMovieDb.create(TheMovieDbApi::class.java) }
     private val imageTmdbApi: ImageTmdbApi by lazy { retrofitTmDb.create(ImageTmdbApi::class.java) }
 
-    override fun getMovieDbSearch(api_key: String, query: String): MovieDbResponseModel? {
+    override suspend fun getMovieDbSearch(api_key: String, query: String): MovieDbResponseModel? {
         try {
-            theMovieDbApi.getMovieDbSearch(api_key, query).execute().let { response ->
-                if (response.code() == 200) {
-                    return response.body()
-                }
-            }
+            return theMovieDbApi.getMovieDbSearch(api_key, query)
         }
-        catch (e: Exception){
+        catch (e: IOException){
             logError(TAG, e)
         }
         return null

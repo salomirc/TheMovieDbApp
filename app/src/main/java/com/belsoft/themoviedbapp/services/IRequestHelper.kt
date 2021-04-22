@@ -10,7 +10,7 @@ interface IRequestHelper {
 
     fun hasInternetConnection() : Boolean
 
-    fun getMovieDbSearch(
+    suspend fun getMovieDbSearch(
         api_key: String,
         query: String
     ) : MovieDbResponseModel?

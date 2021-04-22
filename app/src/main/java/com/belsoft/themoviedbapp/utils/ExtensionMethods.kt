@@ -8,16 +8,13 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 
 @ExperimentalCoroutinesApi
-fun SearchView.onQueryTextChange(viewModel: SearchViewModel): Flow<String?> = callbackFlow {
+fun SearchView.onQueryTextChange(): Flow<String?> = callbackFlow {
     setOnQueryTextListener(object : SearchView.OnQueryTextListener {
         override fun onQueryTextSubmit(query: String?): Boolean {
             return false
         }
 
         override fun onQueryTextChange(newText: String?): Boolean {
-            if (newText.isNullOrEmpty()) {
-                viewModel.setSearchSelectItems(listOf())
-            }
             offer(newText)
             return false
         }

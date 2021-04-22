@@ -8,6 +8,7 @@ import android.widget.SearchView
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewModelScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -21,6 +22,7 @@ import com.belsoft.themoviedbapp.databinding.SearchFragmentBinding
 import com.belsoft.themoviedbapp.utils.InjectorUtils
 import com.belsoft.themoviedbapp.utils.onQueryTextChange
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -105,11 +107,12 @@ class SearchFragment : HideKeyboardReadyFragment() {
             }
         }
 
-        searchViewHide?.
-        onQueryTextChange(viewModel)?.
-        debounce(1000)?.
-        onEach { viewModel.getData(it) }?.
-        launchIn(viewModel.viewModelScope)
+        lifecycleScope.launch {
+            searchViewHide?.
+            onQueryTextChange()?.
+            debounce(1000)?.
+            collect { viewModel.getData(it) }
+        }
 
 
         searchViewHide?.setOnQueryTextFocusChangeListener { v, hasFocus ->
