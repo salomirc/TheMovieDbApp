@@ -8,8 +8,8 @@ import com.belsoft.themoviedbapp.MainActivity
 
 abstract class HideKeyboardReadyFragment : BaseFragment() {
 
-    protected abstract var searchListRecyclerViewHide : RecyclerView?
-    protected abstract var searchViewHide: SearchView?
+    protected abstract val searchListRecyclerViewHide : RecyclerView?
+    protected abstract val searchViewHide: SearchView
     private lateinit var _hideTouchListener : HideKeyboardTouchListener
 
     override fun onCreate(savedInstanceState: Bundle?) {

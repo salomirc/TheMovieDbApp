@@ -9,7 +9,6 @@ import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.viewModelScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.belsoft.themoviedbapp.MainActivity
@@ -22,21 +21,20 @@ import com.belsoft.themoviedbapp.databinding.SearchFragmentBinding
 import com.belsoft.themoviedbapp.utils.InjectorUtils
 import com.belsoft.themoviedbapp.utils.onQueryTextChange
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.*
 
 class SearchFragment : HideKeyboardReadyFragment() {
 
     private lateinit var viewModel: SearchViewModel
     private var _binding: SearchFragmentBinding? = null
-    private var binding: SearchFragmentBinding
+    private val binding: SearchFragmentBinding
         get() = _binding!!
-        set(value) { _binding = value }
 
-    override var searchListRecyclerViewHide: RecyclerView? = null
-    override var searchViewHide: SearchView? = null
+    override val searchListRecyclerViewHide: RecyclerView
+        get() = binding.recyclerView
+
+    override val searchViewHide: SearchView
+        get() = binding.searchView
 
     companion object {
         val TAG = SearchFragment::class.simpleName
@@ -48,14 +46,15 @@ class SearchFragment : HideKeyboardReadyFragment() {
         viewModel = ViewModelProvider(this, factory).get(SearchViewModel::class.java)
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
-                              savedInstanceState: Bundle?): View {
-        binding = DataBindingUtil.inflate(layoutInflater, R.layout.search_fragment, container, false)
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        _binding =
+            DataBindingUtil.inflate(layoutInflater, R.layout.search_fragment, container, false)
         binding.lifecycleOwner = this
         binding.viewmodel = viewModel
         return binding.root.apply {
-            searchListRecyclerViewHide = binding.recyclerView
-            searchViewHide = binding.searchView
             binding.backImageButton.visibility = View.INVISIBLE
         }
     }
@@ -63,8 +62,6 @@ class SearchFragment : HideKeyboardReadyFragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
-        searchListRecyclerViewHide = null
-        searchViewHide = null
     }
 
     @FlowPreview
@@ -77,28 +74,29 @@ class SearchFragment : HideKeyboardReadyFragment() {
     @FlowPreview
     @ExperimentalCoroutinesApi
     private fun initializeUI() {
+
+        val adapter = SearchListAdapter { }
+
         binding.apply {
             recyclerView.apply {
                 // Plug in the linear layout manager:
                 layoutManager = LinearLayoutManager(activity)
 
                 // Plug in my adapter:
-                adapter = SearchListAdapter {
-
-                }
+                this.adapter = adapter
                 setHasFixedSize(true)
                 //Set Observer for RecyclerView source list
-                viewModel.searchSelectItems.observe(viewLifecycleOwner, Observer { itemList ->
-                    // Update the cached copy of the words in the adapter.
-                    itemList?.let { (adapter as SearchListAdapter).submitList(it) }
-                })
+//                viewModel.searchSelectItems.observe(viewLifecycleOwner, Observer { itemList ->
+//                    // Update the cached copy of the words in the adapter.
+//                    itemList?.let { (adapter as SearchListAdapter).submitList(it) }
+//                })
             }
 
             backImageButton.setOnClickListener {
                 if (isRunning)
                     return@setOnClickListener
                 isRunning = true
-                if (MainActivity.isKeyboardOnScreen()){
+                if (MainActivity.isKeyboardOnScreen()) {
                     hideSoftKeyboard(binding.searchView)
                     binding.searchView.clearFocus()
                 }
@@ -108,18 +106,30 @@ class SearchFragment : HideKeyboardReadyFragment() {
         }
 
         lifecycleScope.launch {
-            searchViewHide?.
-            onQueryTextChange()?.
-            debounce(1000)?.
-            collect { viewModel.getData(it) }
+            viewModel.search(searchViewHide.onQueryTextChange()).collect {
+                adapter.submitList(it)
+            }
         }
 
+//        lifecycleScope.launch {
+//            searchViewHide.
+//            onQueryTextChange().
+//            onEach {
+//                if (it.isEmpty()) {
+//                    viewModel.clear()
+//                }
+//            }.
+//            debounce(1000).
+//            filter { it.isNotEmpty() }.
+//            collect { viewModel.search(it) }
+//        }
 
-        searchViewHide?.setOnQueryTextFocusChangeListener { v, hasFocus ->
-            if (hasFocus){
+
+        searchViewHide.setOnQueryTextFocusChangeListener { v, hasFocus ->
+            if (hasFocus) {
                 if (v != null) showSoftKeyboard(v.findFocus())
             }
         }
-        searchViewHide?.requestFocus()
+        searchViewHide.requestFocus()
     }
 }

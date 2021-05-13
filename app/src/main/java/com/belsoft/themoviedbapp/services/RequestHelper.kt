@@ -90,14 +90,8 @@ class RequestHelper private constructor(private val appContext: Application) : H
     private val theMovieDbApi: TheMovieDbApi by lazy { retrofitMovieDb.create(TheMovieDbApi::class.java) }
     private val imageTmdbApi: ImageTmdbApi by lazy { retrofitTmDb.create(ImageTmdbApi::class.java) }
 
-    override suspend fun getMovieDbSearch(api_key: String, query: String): MovieDbResponseModel? {
-        try {
-            return theMovieDbApi.getMovieDbSearch(api_key, query)
-        }
-        catch (e: IOException){
-            logError(TAG, e)
-        }
-        return null
+    override suspend fun getMovieDbSearch(api_key: String, query: String): MovieDbResponseModel {
+        return theMovieDbApi.getMovieDbSearch(api_key, query)
     }
 
     override fun getPoster(fileSize: String, filePath: String): ByteArray? {

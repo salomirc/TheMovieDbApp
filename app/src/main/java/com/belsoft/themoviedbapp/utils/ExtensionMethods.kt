@@ -8,17 +8,18 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 
 @ExperimentalCoroutinesApi
-fun SearchView.onQueryTextChange(): Flow<String?> = callbackFlow {
+fun SearchView.onQueryTextChange(): Flow<String> = callbackFlow {
     setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-        override fun onQueryTextSubmit(query: String?): Boolean {
+        override fun onQueryTextSubmit(query: String): Boolean {
             return false
         }
 
-        override fun onQueryTextChange(newText: String?): Boolean {
+        override fun onQueryTextChange(newText: String): Boolean {
             offer(newText)
             return false
         }
 
     })
+//    this.send("Panther")
     awaitClose { setOnQueryTextListener(null) }
 }

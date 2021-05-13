@@ -13,7 +13,7 @@ interface IRequestHelper {
     suspend fun getMovieDbSearch(
         api_key: String,
         query: String
-    ) : MovieDbResponseModel?
+    ) : MovieDbResponseModel
 
     fun getPoster(fileSize: String, filePath: String): ByteArray?
 }

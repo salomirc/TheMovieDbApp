@@ -8,9 +8,11 @@ import com.belsoft.themoviedbapp.IMainViewModel
 import com.belsoft.themoviedbapp.R
 import com.belsoft.themoviedbapp.api.API_KEY
 import com.belsoft.themoviedbapp.models.SearchSelectItemModel
+import com.belsoft.themoviedbapp.models.api.MovieDbResponseModel
 import com.belsoft.themoviedbapp.models.asViewModel
 import com.belsoft.themoviedbapp.services.IRequestHelper
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.*
 
 class SearchViewModel(private val mainViewModel: IMainViewModel,
                       private val requestHelper: IRequestHelper) : BaseViewModel() {
@@ -23,7 +25,14 @@ class SearchViewModel(private val mainViewModel: IMainViewModel,
         _searchSelectItems.value = searchSelectItems
     }
 
-    fun getData(search: String?) {
+    @ExperimentalCoroutinesApi
+    @FlowPreview
+    fun search(search: Flow<String>): Flow<MovieDbResponseModel> =
+        search.debounce(1000).mapLatest {
+            requestHelper.getMovieDbSearch(API_KEY, it)
+        }
+
+    fun search(search: String) {
         job?.cancel()
 
         job = viewModelScope.launch {
@@ -33,7 +42,8 @@ class SearchViewModel(private val mainViewModel: IMainViewModel,
                 return@launch
             }
 
-            if (search.isNullOrEmpty()) {
+            if (search.isEmpty()) {
+                _searchSelectItems.value = listOf()
                 return@launch
             }
 
@@ -42,7 +52,7 @@ class SearchViewModel(private val mainViewModel: IMainViewModel,
                 requestHelper.getMovieDbSearch(API_KEY, search)
             }
 
-            result?.let {
+            result.let {
                 val itemList = result.results.map {
                     it.asViewModel()
                 }
@@ -52,5 +62,9 @@ class SearchViewModel(private val mainViewModel: IMainViewModel,
             }
             isVisibleProgressBar.value = false
         }
+    }
+
+    fun clear() {
+        _searchSelectItems.value = listOf()
     }
 }
