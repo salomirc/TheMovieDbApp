@@ -8,11 +8,9 @@ import android.os.Build
 import com.belsoft.themoviedbapp.api.ImageTmdbApi
 import com.belsoft.themoviedbapp.api.TheMovieDbApi
 import com.belsoft.themoviedbapp.models.api.MovieDbResponseModel
-import kotlinx.coroutines.delay
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import java.io.IOException
 import java.util.concurrent.TimeUnit
 
 const val API_THE_MOVIE_DB_URL = "https://api.themoviedb.org/"
@@ -94,15 +92,24 @@ class RequestHelper private constructor(private val appContext: Application) : H
         return theMovieDbApi.getMovieDbSearch(api_key, query)
     }
 
+//    override fun getPoster(fileSize: String, filePath: String): ByteArray? {
+//        try {
+//            imageTmdbApi.getPoster(fileSize, filePath).execute().let { response ->
+//                if (response.code() == 200) {
+//                    return response.body()?.bytes()
+//                }
+//            }
+//        }
+//        catch (e: Exception){
+//            logError(TAG, e)
+//        }
+//        return null
+//    }
+
     override fun getPoster(fileSize: String, filePath: String): ByteArray? {
         try {
-            imageTmdbApi.getPoster(fileSize, filePath).execute().let { response ->
-                if (response.code() == 200) {
-                    return response.body()?.bytes()
-                }
-            }
-        }
-        catch (e: Exception){
+            return imageTmdbApi.getPosterByteArray(fileSize, filePath)
+        } catch (e: Exception) {
             logError(TAG, e)
         }
         return null

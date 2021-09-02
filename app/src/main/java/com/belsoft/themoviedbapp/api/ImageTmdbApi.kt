@@ -14,4 +14,11 @@ interface ImageTmdbApi {
             @Path("fileSize") fileSize: String,
             @Path("filePath") filePath: String
     ): Call<ResponseBody>
+
+    @Headers("Content-Type: application/json")
+    @GET("{fileSize}/{filePath}")
+    fun getPosterByteArray(
+        @Path("fileSize") fileSize: String,
+        @Path("filePath") filePath: String
+    ): ByteArray
 }
