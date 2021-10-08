@@ -32,8 +32,26 @@ class MainActivity : BaseActivity() {
         initializeUI()
     }
 
+    private fun setArchitectureComponents() {
+
+        // Get the MainViewModelFactory with all of it's dependencies constructed
+        val factory = InjectorUtils.getInstance.provideMainViewModelFactory()
+
+        // Obtain the ViewModel component.
+        viewModel = ViewModelProvider(this, factory).get(MainViewModel::class.java)
+
+        // Inflate view and obtain an instance of the binding class.
+        binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
+
+        // Specify the current activity as the lifecycle owner.
+        binding.lifecycleOwner = this
+
+        // Assign the component to a property in the binding class.
+        binding.viewmodel = viewModel
+    }
+
     private fun setCompanionObjectMembers() {
-        val rootView = binding.rootLayout
+        val rootView = binding.root
         isKeyboardOnScreen = {
             val r = Rect()
             rootView.getWindowVisibleDisplayFrame(r)
@@ -53,24 +71,6 @@ class MainActivity : BaseActivity() {
                 imm.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT)
             }
         }
-    }
-
-    private fun setArchitectureComponents() {
-
-        // Get the MainViewModelFactory with all of it's dependencies constructed
-        val factory = InjectorUtils.getInstance.provideMainViewModelFactory()
-
-        // Obtain the ViewModel component.
-        viewModel = ViewModelProvider(this, factory).get(MainViewModel::class.java)
-
-        // Inflate view and obtain an instance of the binding class.
-        binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
-
-        // Specify the current activity as the lifecycle owner.
-        binding.lifecycleOwner = this
-
-        // Assign the component to a property in the binding class.
-        binding.viewmodel = viewModel
     }
 
     private fun initializeUI() {
