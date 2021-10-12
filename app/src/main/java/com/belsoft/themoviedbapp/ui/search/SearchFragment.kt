@@ -26,9 +26,8 @@ class SearchFragment : HideKeyboardReadyFragment() {
 
     private lateinit var viewModel: SearchViewModel
     private var _binding: SearchFragmentBinding? = null
-    private var binding: SearchFragmentBinding
+    private val binding: SearchFragmentBinding
         get() = _binding!!
-        set(value) { _binding = value }
 
     override var searchListRecyclerViewHide: RecyclerView? = null
     override var searchViewHide: SearchView? = null
@@ -45,7 +44,7 @@ class SearchFragment : HideKeyboardReadyFragment() {
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View {
-        binding = DataBindingUtil.inflate(layoutInflater, R.layout.search_fragment, container, false)
+        _binding = DataBindingUtil.inflate(inflater, R.layout.search_fragment, container, false)
         binding.lifecycleOwner = this
         binding.viewmodel = viewModel
         binding.apply {
