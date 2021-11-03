@@ -18,6 +18,7 @@ import com.belsoft.themoviedbapp.R
 import com.belsoft.themoviedbapp.adapters.SearchListAdapter
 import com.belsoft.themoviedbapp.components.HideKeyboardReadyFragment
 import com.belsoft.themoviedbapp.databinding.SearchFragmentBinding
+import com.belsoft.themoviedbapp.models.asViewModel
 import com.belsoft.themoviedbapp.utils.InjectorUtils
 import com.belsoft.themoviedbapp.utils.onQueryTextChange
 import kotlinx.coroutines.*
@@ -105,9 +106,11 @@ class SearchFragment : HideKeyboardReadyFragment() {
             }
         }
 
-        lifecycleScope.launch {
-            viewModel.search(searchViewHide.onQueryTextChange()).collect {
-                adapter.submitList(it)
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.search(searchViewHide.onQueryTextChange()).collect { movieDbResponseModel ->
+                adapter.submitList(movieDbResponseModel.results.map {
+                    it.asViewModel()
+                })
             }
         }
 
