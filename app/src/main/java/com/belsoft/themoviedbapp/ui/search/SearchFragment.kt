@@ -65,6 +65,11 @@ class SearchFragment : HideKeyboardReadyFragment() {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         initializeUI()
+        setViewModelData()
+    }
+
+    private fun setViewModelData() {
+//        viewModel.getTrainings()
     }
 
     private fun initializeUI() {
