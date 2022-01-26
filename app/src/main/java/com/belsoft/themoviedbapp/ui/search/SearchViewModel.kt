@@ -24,7 +24,7 @@ class SearchViewModel(private val mainViewModel: IMainViewModel,
     }
 
     suspend fun getData(search: String) {
-        if (!requestHelper.hasInternetConnection()) {
+        if (!requestHelper.hasInternetConnection) {
             mainViewModel.toastMessage.value = R.string.no_internet_connection
             return
         }

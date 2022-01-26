@@ -24,7 +24,7 @@ class InjectorUtils private constructor(appContext: Application) {
         }
     }
 
-    private val requestHelper = RequestHelper.getInstance(appContext)
+    private val requestHelper = RequestHelper(appContext)
 
     fun provideMainViewModelFactory(): ViewModelFactory<MainViewModel> {
         return ViewModelFactory {
