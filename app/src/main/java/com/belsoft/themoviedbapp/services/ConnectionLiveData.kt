@@ -52,7 +52,8 @@ class ConnectionLiveData(context: Context) : MutableLiveData<ConnectionModel>() 
 
         override fun onAvailable(network: Network) {
             Log.d("ConnectionLiveData", "onAvailable() called")
-            if (hasInternet(network) == true) {
+            val isConnected = hasInternet(network)
+            if (isConnected == true) {
                 validNetworks.add(network)
             }
             evaluateNetworkConnection()
