@@ -75,7 +75,7 @@ class MainActivity : BaseActivity() {
 
     private fun initializeUI() {
         //SingleEvent received from ViewModel
-        viewModel.toastMessage.observe(this, Observer { message ->
+        viewModel.toastMessage.observe(this, { message ->
             // Update the cached copy of the words in the adapter.
             message?.let {
                 displayToastMessage(this, resources.getString(it))
@@ -83,10 +83,21 @@ class MainActivity : BaseActivity() {
         })
 
         //SingleEvent received from ViewModel
-        viewModel.toastMessageString.observe(this, Observer { message ->
+        viewModel.toastMessageString.observe(this, { message ->
             // Update the cached copy of the words in the adapter.
             message?.let {
                 displayToastMessage(this, it)
+            }
+        })
+
+        viewModel.connectionLiveData.observe(this, {
+            when {
+                !it.isConnected && !it.wasDisconnected -> {
+                    viewModel.toastMessage.value = R.string.no_internet_connection
+                }
+                it.isConnected && it.wasDisconnected -> {
+                    viewModel.toastMessage.value = R.string.connected_to_internet
+                }
             }
         })
     }

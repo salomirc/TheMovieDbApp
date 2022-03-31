@@ -2,111 +2,145 @@ package com.belsoft.themoviedbapp.services
 
 import android.content.Context
 import android.net.ConnectivityManager
+import android.net.LinkProperties
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkCapabilities.*
-import android.net.NetworkRequest
-import android.os.Build
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
+import com.belsoft.themoviedbapp.api.API_KEY
+import com.belsoft.themoviedbapp.models.api.MovieDbResponseModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+
 
 data class ConnectionModel(
     val type: ConnectionType,
     val isConnected: Boolean,
-    val wasDisconnected: Boolean = false
+    val wasDisconnected: Boolean
 )
 
-enum class ConnectionType(val index: Int) {
-    WIFI_DATA(0),
-    MOBILE_DATA(1),
-    OTHER_DATA(2),
-    NO_DATA(3);
+data class NetworkStateModel(
+    val type: ConnectionType,
+    val isConnected: Boolean
+)
 
-    companion object {
-        fun valueOf(value: Int) = values().find { it.index == value }
-    }
+enum class ConnectionType {
+    TRANSPORT_CELLULAR,
+    TRANSPORT_WIFI,
+    TRANSPORT_VPN,
+    TRANSPORT_OTHER,
+    NO_DATA
 }
 
-class ConnectionLiveData(context: Context) : MutableLiveData<ConnectionModel>() {
+class ConnectionLiveData(
+    context: Context,
+    getMovieDbSearch: suspend (api_key: String, query: String) -> MovieDbResponseModel?
+) : MutableLiveData<ConnectionModel>() {
 
-    private val connectivityManager: ConnectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-    private val validNetworks: MutableSet<Network> = mutableSetOf()
+    private val connectivityManager: ConnectivityManager = context.getSystemService(ConnectivityManager::class.java)
     private var wasPreviousDisconnected : Boolean = false
 
     val isConnected: Boolean
-        get() {
-            return when {
-                Build.VERSION.SDK_INT >= Build.VERSION_CODES.M -> {
-                    connectivityManager.activeNetwork?.let {
-                        hasInternet(it)
-                    } ?: false
-                }
-                else -> {
-                    @Suppress("DEPRECATION")
-                    connectivityManager.activeNetworkInfo?.isConnected ?: false
-                }
-            }
-        }
+        get() = evaluateNetwork(connectivityManager.activeNetwork).isConnected
 
     private val networkCallback = object : ConnectivityManager.NetworkCallback() {
 
         override fun onAvailable(network: Network) {
-            Log.d("ConnectionLiveData", "onAvailable() called")
-            val isConnected = hasInternet(network)
-            if (isConnected == true) {
-                validNetworks.add(network)
-            }
-            evaluateNetworkConnection()
+            Log.d("ConnectionLiveData", "onAvailable() called, $network")
+            logState("onAvailable()")
+            evaluateActiveNetwork(network)
+        }
+
+        override fun onCapabilitiesChanged(
+            network: Network,
+            networkCapabilities: NetworkCapabilities
+        ) {
+            super.onCapabilitiesChanged(network, networkCapabilities)
+            Log.d("ConnectionLiveData", "onCapabilitiesChanged() called network = $network, networkCapabilities = $networkCapabilities")
+        }
+
+        override fun onLinkPropertiesChanged(
+            network: Network,
+            linkProperties: LinkProperties
+        ) {
+            super.onLinkPropertiesChanged(network, linkProperties)
+            Log.d("ConnectionLiveData", "onLinkPropertiesChanged() called network = $network, linkProperties = $linkProperties")
         }
 
         override fun onLost(network: Network) {
-            Log.d("ConnectionLiveData", "onLost() called")
-            validNetworks.remove(network)
-            evaluateNetworkConnection()
+            Log.d("ConnectionLiveData", "onLost() called network = $network")
+            logState("onLost()")
+            CoroutineScope(Dispatchers.IO).launch {
+                Log.d("ConnectionLiveData", "getMovieDbSearch() called")
+                getMovieDbSearch(API_KEY, "bean").let {
+                    Log.d("ConnectionLiveData", "onLost() called and response = ${it?.results}")
+                }
+            }
+            generateConnectionState(false, ConnectionType.NO_DATA)
         }
     }
 
     override fun onActive() {
         super.onActive()
-        val networkRequest = NetworkRequest.Builder()
-            .addCapability(NET_CAPABILITY_INTERNET)
-            .build()
-        connectivityManager.registerNetworkCallback(networkRequest, networkCallback)
+        logState("onActive()")
+        Log.d("ConnectionLiveData", "evaluateActiveNetwork")
+        evaluateActiveNetwork(connectivityManager.activeNetwork)
         Log.d("ConnectionLiveData", "registerDefaultNetworkCallback")
+        connectivityManager.registerDefaultNetworkCallback(networkCallback)
     }
 
     override fun onInactive() {
         super.onInactive()
-        connectivityManager.unregisterNetworkCallback(networkCallback)
         Log.d("ConnectionLiveData", "unregisterNetworkCallback")
+        connectivityManager.unregisterNetworkCallback(networkCallback)
     }
 
-    private fun hasInternet(network: Network) =
-        getNetworkCapabilities(network)?.hasCapability(NET_CAPABILITY_INTERNET)
+    private fun evaluateActiveNetwork(network: Network?) {
+        evaluateNetwork(network).let {
+            generateConnectionState(it.isConnected, it.type)
+        }
+    }
 
-    private fun getNetworkCapabilities(network: Network) = connectivityManager.getNetworkCapabilities(network)
+    private fun evaluateNetwork(network: Network?): NetworkStateModel {
+        return network?.let {
+            val networkCapabilities = connectivityManager.getNetworkCapabilities(network)
+            val type = getConnectionType(networkCapabilities)
+            val isConnected = getConnectionStatus(type, networkCapabilities)
+            NetworkStateModel(type, isConnected)
+        } ?: NetworkStateModel(ConnectionType.NO_DATA, false)
+    }
 
     private fun getConnectionType(networkCapabilities: NetworkCapabilities?): ConnectionType {
         return when {
             networkCapabilities == null -> ConnectionType.NO_DATA
-            hasTransport(networkCapabilities, TRANSPORT_WIFI) -> ConnectionType.WIFI_DATA
-            hasTransport(networkCapabilities, TRANSPORT_CELLULAR) -> ConnectionType.MOBILE_DATA
-            else -> ConnectionType.OTHER_DATA
+            hasTransport(networkCapabilities, TRANSPORT_WIFI) -> ConnectionType.TRANSPORT_WIFI
+            hasTransport(networkCapabilities, TRANSPORT_CELLULAR) -> ConnectionType.TRANSPORT_CELLULAR
+            hasTransport(networkCapabilities, TRANSPORT_VPN) -> ConnectionType.TRANSPORT_VPN
+            else -> ConnectionType.TRANSPORT_OTHER
         }
     }
 
     private fun hasTransport(networkCapabilities: NetworkCapabilities?, transportType: Int) =
-        networkCapabilities?.hasTransport(transportType) == true
+        networkCapabilities?.hasTransport(transportType) ?: false
 
-    private fun getActiveNetworkType() = validNetworks
-        .map { network -> getConnectionType(getNetworkCapabilities(network)) }
-        .minByOrNull { connectionType -> connectionType.index } ?: ConnectionType.NO_DATA
-
-    private fun evaluateNetworkConnection() {
-        val type = getActiveNetworkType()
-        val isConnected = type != ConnectionType.NO_DATA
-        generateConnectionState(isConnected, type)
-    }
+    private fun getConnectionStatus(type: ConnectionType, networkCapabilities: NetworkCapabilities?): Boolean =
+        when (type) {
+            ConnectionType.NO_DATA -> false
+            ConnectionType.TRANSPORT_VPN -> {
+                networkCapabilities?.run {
+                    hasCapability(NET_CAPABILITY_TRUSTED ) &&
+                            hasCapability(NET_CAPABILITY_VALIDATED)
+                } ?: false
+            }
+            else -> {
+                networkCapabilities?.run {
+                    hasCapability(NET_CAPABILITY_INTERNET) &&
+                            hasCapability(NET_CAPABILITY_VALIDATED)
+                } ?: false
+            }
+        }
 
     private fun generateConnectionState(isConnected: Boolean, networkType: ConnectionType) {
         handleNetworkInfo(isConnected, networkType)
@@ -126,5 +160,12 @@ class ConnectionLiveData(context: Context) : MutableLiveData<ConnectionModel>() 
     private fun updatePreviousStatus(isConnected: Boolean) {
         wasPreviousDisconnected = !isConnected
         Log.d("ConnectionLiveData", "wasPreviousDisconnected status new value = $wasPreviousDisconnected")
+    }
+
+    private fun logState(place: String) {
+        Log.d("ConnectionLiveData", "$place activeNetworkInfo? = ${connectivityManager.activeNetworkInfo}")
+        Log.d("ConnectionLiveData", "$place activeNetworkInfo?.isConnected = ${connectivityManager.activeNetworkInfo?.isConnected ?: false}")
+        Log.d("ConnectionLiveData", "$place allNetworks: ${connectivityManager.allNetworks.map { network -> evaluateNetwork(network) }}")
+        Log.d("ConnectionLiveData", "$place activeNetwork: ${connectivityManager.activeNetwork?.let { evaluateNetwork(it) } ?: NetworkStateModel(ConnectionType.NO_DATA, false)}")
     }
 }

@@ -1,6 +1,7 @@
 package com.belsoft.themoviedbapp.services
 
 import android.app.Application
+import com.belsoft.themoviedbapp.api.API_KEY
 import com.belsoft.themoviedbapp.api.ImageTmdbApi
 import com.belsoft.themoviedbapp.api.TheMovieDbApi
 import com.belsoft.themoviedbapp.models.api.MovieDbResponseModel
@@ -16,10 +17,15 @@ const val LOGO_SIZE = "w185"
 class RequestHelper(application: Application) : HelperBase(), IRequestHelper {
 
     companion object {
-        private val TAG = RequestHelper::class.simpleName
+        private const val TAG = "RequestHelper"
     }
 
-    override val connectionLiveData = ConnectionLiveData(application)
+    override val connectionLiveData = ConnectionLiveData(
+        application,
+        getMovieDbSearch = { api_key, query ->
+            getMovieDbSearch(api_key, query)
+        }
+    )
     override val hasInternetConnection: Boolean
         get() = connectionLiveData.isConnected
 
@@ -44,16 +50,12 @@ class RequestHelper(application: Application) : HelperBase(), IRequestHelper {
     private val theMovieDbApi: TheMovieDbApi by lazy { retrofitMovieDb.create(TheMovieDbApi::class.java) }
     private val imageTmdbApi: ImageTmdbApi by lazy { retrofitTmDb.create(ImageTmdbApi::class.java) }
 
-    override fun getMovieDbSearch(api_key: String, query: String): MovieDbResponseModel? {
+    override suspend fun getMovieDbSearch(api_key: String, query: String): MovieDbResponseModel? {
         try {
-            theMovieDbApi.getMovieDbSearch(api_key, query).execute().let { response ->
-                if (response.code() == 200) {
-                    return response.body()
-                }
-            }
+            return theMovieDbApi.getMovieDbSearch(api_key, query)
         }
         catch (e: Exception){
-            logError(TAG, e)
+            logError("ConnectionLiveData", e)
         }
         return null
     }

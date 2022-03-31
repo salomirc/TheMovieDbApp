@@ -39,9 +39,9 @@ class SearchViewModel(private val mainViewModel: IMainViewModel,
                 it.asViewModel()
             }
             _searchSelectItems.value = itemList
-            isVisibleProgressBar.value = false
         } ?: run {
             mainViewModel.toastMessage.value = R.string.something_went_wrong
         }
+        isVisibleProgressBar.value = false
     }
 }

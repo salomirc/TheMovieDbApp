@@ -28,7 +28,7 @@ class InjectorUtils private constructor(appContext: Application) {
 
     fun provideMainViewModelFactory(): ViewModelFactory<MainViewModel> {
         return ViewModelFactory {
-            MainViewModel()
+            MainViewModel(requestHelper)
         }
     }
 

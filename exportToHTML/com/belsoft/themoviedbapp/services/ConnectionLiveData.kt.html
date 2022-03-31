@@ -1,0 +1,185 @@
+<html>
+<head>
+<title>ConnectionLiveData.kt</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cc7832;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #808080;}
+.s3 { color: #6a8759;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+ConnectionLiveData.kt</font>
+</center></td></tr></table>
+<pre><span class="s0">package </span><span class="s1">com.belsoft.themoviedbapp.services</span>
+
+<span class="s1">import android.content.Context</span>
+<span class="s1">import android.net.ConnectivityManager</span>
+<span class="s1">import android.net.Network</span>
+<span class="s1">import android.net.NetworkCapabilities</span>
+<span class="s1">import android.net.NetworkCapabilities.*</span>
+<span class="s1">import android.net.NetworkRequest</span>
+<span class="s1">import android.util.Log</span>
+<span class="s1">import androidx.lifecycle.MutableLiveData</span>
+<span class="s1">import com.belsoft.themoviedbapp.api.API_KEY</span>
+<span class="s1">import com.belsoft.themoviedbapp.models.api.MovieDbResponseModel</span>
+<span class="s1">import kotlinx.coroutines.*</span>
+
+
+<span class="s1">data </span><span class="s0">class </span><span class="s1">ConnectionModel(</span>
+    <span class="s0">val </span><span class="s1">type: ConnectionType</span><span class="s0">,</span>
+    <span class="s0">val </span><span class="s1">isConnected: Boolean</span><span class="s0">,</span>
+    <span class="s0">val </span><span class="s1">wasDisconnected: Boolean</span>
+<span class="s1">)</span>
+
+<span class="s1">data </span><span class="s0">class </span><span class="s1">NetworkStateModel(</span>
+    <span class="s0">val </span><span class="s1">type: ConnectionType</span><span class="s0">,</span>
+    <span class="s0">val </span><span class="s1">isConnected: Boolean</span>
+<span class="s1">)</span>
+
+<span class="s1">enum </span><span class="s0">class </span><span class="s1">ConnectionType {</span>
+    <span class="s1">TRANSPORT_WIFI</span><span class="s0">,</span>
+    <span class="s1">TRANSPORT_CELLULAR</span><span class="s0">,</span>
+    <span class="s1">TRANSPORT_OTHER</span><span class="s0">,</span>
+    <span class="s1">NO_DATA</span>
+<span class="s1">}</span>
+
+<span class="s0">class </span><span class="s1">ConnectionLiveData(</span>
+    <span class="s1">context: Context</span><span class="s0">,</span>
+    <span class="s1">getMovieDbSearch: suspend (api_key: String</span><span class="s0">, </span><span class="s1">query: String) -&gt; MovieDbResponseModel?</span>
+<span class="s1">) : MutableLiveData&lt;ConnectionModel&gt;() {</span>
+
+    <span class="s1">private </span><span class="s0">val </span><span class="s1">connectivityManager: ConnectivityManager = context.getSystemService(ConnectivityManager::</span><span class="s0">class</span><span class="s1">.java)</span>
+    <span class="s1">private </span><span class="s0">val </span><span class="s1">validNetworks: MutableSet&lt;Network&gt; = mutableSetOf()</span>
+    <span class="s1">private </span><span class="s0">var </span><span class="s1">wasPreviousDisconnected : Boolean = </span><span class="s0">false</span>
+
+    <span class="s0">val </span><span class="s1">isConnected: Boolean</span>
+<span class="s2">//        get() = evaluateActiveNetworkState(connectivityManager.allNetworks.toList()).isConnected</span>
+        <span class="s1">get() = </span><span class="s0">true</span>
+
+
+    <span class="s1">private </span><span class="s0">val </span><span class="s1">networkCallback = </span><span class="s0">object </span><span class="s1">: ConnectivityManager.NetworkCallback() {</span>
+        <span class="s1">override </span><span class="s0">fun </span><span class="s1">onAvailable(network: Network) {</span>
+            <span class="s1">evaluateNetwork(network).let {</span>
+                <span class="s0">if </span><span class="s1">(it.isConnected) {</span>
+                    <span class="s1">validNetworks.add(network)</span>
+                    <span class="s1">logState(</span><span class="s3">&quot;onAvailable()&quot;</span><span class="s1">)</span>
+                    <span class="s1">evaluateValidNetworks()</span>
+                <span class="s1">}</span>
+            <span class="s1">}</span>
+        <span class="s1">}</span>
+
+        <span class="s1">override </span><span class="s0">fun </span><span class="s1">onLost(network: Network) {</span>
+            <span class="s1">validNetworks.remove(network).let { isSuccess -&gt;</span>
+                <span class="s0">if </span><span class="s1">(isSuccess) {</span>
+                    <span class="s1">logState(</span><span class="s3">&quot;onLost()&quot;</span><span class="s1">)</span>
+                    <span class="s1">CoroutineScope(Dispatchers.IO).launch {</span>
+                        <span class="s1">getMovieDbSearch(API_KEY</span><span class="s0">, </span><span class="s3">&quot;bean&quot;</span><span class="s1">).let {</span>
+                            <span class="s1">Log.d(</span><span class="s3">&quot;ConnectionLiveData&quot;</span><span class="s0">, </span><span class="s3">&quot;onLost() called and response = </span><span class="s0">${</span><span class="s1">it?.results</span><span class="s0">}</span><span class="s3">&quot;</span><span class="s1">)</span>
+                        <span class="s1">}</span>
+                    <span class="s1">}</span>
+                    <span class="s1">evaluateValidNetworks()</span>
+                <span class="s1">}</span>
+            <span class="s1">}</span>
+        <span class="s1">}</span>
+    <span class="s1">}</span>
+
+    <span class="s1">override </span><span class="s0">fun </span><span class="s1">onActive() {</span>
+        <span class="s0">super</span><span class="s1">.onActive()</span>
+        <span class="s1">logState(</span><span class="s3">&quot;onActive()&quot;</span><span class="s1">)</span>
+        <span class="s1">evaluateAllNetworks()</span>
+        <span class="s0">val </span><span class="s1">networkRequest = NetworkRequest.Builder()</span>
+<span class="s2">//            .addCapability(NET_CAPABILITY_INTERNET)</span>
+            <span class="s1">.addCapability(NET_CAPABILITY_VALIDATED)</span>
+<span class="s2">//            .addCapability(NET_CAPABILITY_NOT_VPN)</span>
+            <span class="s1">.build()</span>
+        <span class="s1">validNetworks.clear()</span>
+        <span class="s1">connectivityManager.registerNetworkCallback(networkRequest</span><span class="s0">, </span><span class="s1">networkCallback)</span>
+
+    <span class="s1">}</span>
+
+    <span class="s1">override </span><span class="s0">fun </span><span class="s1">onInactive() {</span>
+        <span class="s0">super</span><span class="s1">.onInactive()</span>
+        <span class="s1">connectivityManager.unregisterNetworkCallback(networkCallback)</span>
+    <span class="s1">}</span>
+
+    <span class="s1">private </span><span class="s0">fun </span><span class="s1">evaluateAllNetworks() {</span>
+        <span class="s1">evaluateActiveNetworks(connectivityManager.allNetworks.toList())</span>
+    <span class="s1">}</span>
+
+    <span class="s1">private </span><span class="s0">fun </span><span class="s1">evaluateValidNetworks() {</span>
+        <span class="s1">evaluateActiveNetworks(validNetworks.toList())</span>
+    <span class="s1">}</span>
+
+    <span class="s1">private </span><span class="s0">fun </span><span class="s1">evaluateActiveNetworks(networks: List&lt;Network&gt;) {</span>
+        <span class="s1">evaluateActiveNetworkState(networks).let {</span>
+            <span class="s1">generateConnectionState(it.type</span><span class="s0">, </span><span class="s1">it.isConnected)</span>
+        <span class="s1">}</span>
+    <span class="s1">}</span>
+
+    <span class="s1">private </span><span class="s0">fun </span><span class="s1">evaluateActiveNetworkState(networks: List&lt;Network&gt;): NetworkStateModel {</span>
+        <span class="s0">return </span><span class="s1">networks</span>
+            <span class="s1">.map { network -&gt; evaluateNetwork(network) }</span>
+            <span class="s1">.filter { it.isConnected }</span>
+            <span class="s1">.minByOrNull { it.type } ?: NetworkStateModel(ConnectionType.NO_DATA</span><span class="s0">, false</span><span class="s1">)</span>
+    <span class="s1">}</span>
+
+    <span class="s1">private </span><span class="s0">fun </span><span class="s1">evaluateNetwork(network: Network): NetworkStateModel {</span>
+        <span class="s0">val </span><span class="s1">networkCapabilities = connectivityManager.getNetworkCapabilities(network)</span>
+        <span class="s0">val </span><span class="s1">type = getConnectionType(networkCapabilities)</span>
+        <span class="s0">val </span><span class="s1">isConnected = getConnectionStatus(networkCapabilities)</span>
+        <span class="s0">return </span><span class="s1">NetworkStateModel(type</span><span class="s0">, </span><span class="s1">isConnected)</span>
+    <span class="s1">}</span>
+
+    <span class="s1">private </span><span class="s0">fun </span><span class="s1">getConnectionType(networkCapabilities: NetworkCapabilities?): ConnectionType {</span>
+        <span class="s0">return when </span><span class="s1">{</span>
+            <span class="s1">networkCapabilities == </span><span class="s0">null </span><span class="s1">-&gt; ConnectionType.NO_DATA</span>
+            <span class="s1">hasTransport(networkCapabilities</span><span class="s0">, </span><span class="s1">TRANSPORT_WIFI) -&gt; ConnectionType.TRANSPORT_WIFI</span>
+            <span class="s1">hasTransport(networkCapabilities</span><span class="s0">, </span><span class="s1">TRANSPORT_CELLULAR) -&gt; ConnectionType.TRANSPORT_CELLULAR</span>
+            <span class="s0">else </span><span class="s1">-&gt; ConnectionType.TRANSPORT_OTHER</span>
+        <span class="s1">}</span>
+    <span class="s1">}</span>
+
+    <span class="s1">private </span><span class="s0">fun </span><span class="s1">hasTransport(networkCapabilities: NetworkCapabilities?</span><span class="s0">, </span><span class="s1">transportType: Int) =</span>
+        <span class="s1">networkCapabilities?.hasTransport(transportType) ?: </span><span class="s0">false</span>
+
+    <span class="s1">private </span><span class="s0">fun </span><span class="s1">getConnectionStatus(networkCapabilities: NetworkCapabilities?): Boolean {</span>
+        <span class="s0">return </span><span class="s1">networkCapabilities?.run {</span>
+<span class="s2">//                    hasCapability(NET_CAPABILITY_INTERNET) &amp;&amp;</span>
+<span class="s2">//                    hasCapability(NET_CAPABILITY_NOT_VPN) &amp;&amp;</span>
+                    <span class="s1">hasCapability(NET_CAPABILITY_VALIDATED)</span>
+        <span class="s1">} ?: </span><span class="s0">false</span>
+    <span class="s1">}</span>
+
+    <span class="s1">private </span><span class="s0">fun </span><span class="s1">generateConnectionState(networkType: ConnectionType</span><span class="s0">, </span><span class="s1">isConnected: Boolean) {</span>
+        <span class="s1">handleNetworkInfo(networkType</span><span class="s0">, </span><span class="s1">isConnected)</span>
+        <span class="s1">updatePreviousStatus(isConnected)</span>
+    <span class="s1">}</span>
+
+    <span class="s1">private </span><span class="s0">fun </span><span class="s1">handleNetworkInfo(networkType: ConnectionType</span><span class="s0">, </span><span class="s1">isConnected: Boolean) {</span>
+        <span class="s0">val </span><span class="s1">model = ConnectionModel(</span>
+            <span class="s1">type = networkType</span><span class="s0">,</span>
+            <span class="s1">isConnected = isConnected</span><span class="s0">,</span>
+            <span class="s1">wasDisconnected = wasPreviousDisconnected</span>
+        <span class="s1">)</span>
+        <span class="s1">postValue(model)</span>
+    <span class="s1">}</span>
+
+    <span class="s1">private </span><span class="s0">fun </span><span class="s1">updatePreviousStatus(isConnected: Boolean) {</span>
+        <span class="s1">wasPreviousDisconnected = !isConnected</span>
+    <span class="s1">}</span>
+
+    <span class="s1">private </span><span class="s0">fun </span><span class="s1">logState(place: String) {</span>
+        <span class="s1">Log.d(</span><span class="s3">&quot;ConnectionLiveData&quot;</span><span class="s0">, </span><span class="s3">&quot;</span><span class="s0">$</span><span class="s1">place </span><span class="s3">activeNetworkInfo? = </span><span class="s0">${</span><span class="s1">connectivityManager.activeNetworkInfo</span><span class="s0">}</span><span class="s3">&quot;</span><span class="s1">)</span>
+        <span class="s1">Log.d(</span><span class="s3">&quot;ConnectionLiveData&quot;</span><span class="s0">, </span><span class="s3">&quot;</span><span class="s0">$</span><span class="s1">place </span><span class="s3">activeNetworkInfo?.isConnected = </span><span class="s0">${</span><span class="s1">connectivityManager.activeNetworkInfo?.isConnected ?: </span><span class="s0">false}</span><span class="s3">&quot;</span><span class="s1">)</span>
+        <span class="s1">Log.d(</span><span class="s3">&quot;ConnectionLiveData&quot;</span><span class="s0">, </span><span class="s3">&quot;</span><span class="s0">$</span><span class="s1">place </span><span class="s3">allNetworks: </span><span class="s0">${</span><span class="s1">connectivityManager.allNetworks.map { network -&gt; evaluateNetwork(network) }</span><span class="s0">}</span><span class="s3">&quot;</span><span class="s1">)</span>
+        <span class="s1">Log.d(</span><span class="s3">&quot;ConnectionLiveData&quot;</span><span class="s0">, </span><span class="s3">&quot;</span><span class="s0">$</span><span class="s1">place </span><span class="s3">activeNetwork: </span><span class="s0">${</span><span class="s1">connectivityManager.activeNetwork?.let { evaluateNetwork(it) } ?: NetworkStateModel(ConnectionType.NO_DATA</span><span class="s0">, false</span><span class="s1">)</span><span class="s0">}</span><span class="s3">&quot;</span><span class="s1">)</span>
+        <span class="s1">Log.d(</span><span class="s3">&quot;ConnectionLiveData&quot;</span><span class="s0">, </span><span class="s3">&quot;</span><span class="s0">$</span><span class="s1">place </span><span class="s3">validNetworks updated: </span><span class="s0">${</span><span class="s1">validNetworks.map { network -&gt; evaluateNetwork(network) }</span><span class="s0">}</span><span class="s3">&quot;</span><span class="s1">)</span>
+    <span class="s1">}</span>
+<span class="s1">}</span></pre>
+</body>
+</html>

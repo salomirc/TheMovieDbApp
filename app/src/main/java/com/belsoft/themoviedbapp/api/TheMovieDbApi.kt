@@ -12,8 +12,8 @@ interface TheMovieDbApi {
 
     @Headers("Content-Type: application/json")
     @GET("3/search/movie")
-    fun getMovieDbSearch(
+    suspend fun getMovieDbSearch(
         @Query("api_key") api_key: String,
         @Query("query") query: String
-    ) : Call<MovieDbResponseModel>
+    ) : MovieDbResponseModel
 }
