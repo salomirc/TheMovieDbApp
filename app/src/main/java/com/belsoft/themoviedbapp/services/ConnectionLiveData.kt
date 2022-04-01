@@ -7,10 +7,6 @@ import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 data class ConnectionModel(
     val type: ConnectionType,
@@ -26,6 +22,7 @@ data class NetworkStateModel(
 enum class ConnectionType {
     TRANSPORT_WIFI,
     TRANSPORT_CELLULAR,
+    TRANSPORT_VPN,
     TRANSPORT_OTHER,
     NO_DATA
 }
@@ -66,6 +63,7 @@ class ConnectionLiveData(context: Context) : MutableLiveData<ConnectionModel>() 
             .build()
         validNetworks.clear()
         Log.d("ConnectionLiveData", "checkForDisconnectedStatus() called")
+        logState("onActive()")
         checkForDisconnectedStatus()
         Log.d("ConnectionLiveData", "registerDefaultNetworkCallback")
         connectivityManager.registerNetworkCallback(networkRequest, networkCallback)
@@ -105,7 +103,7 @@ class ConnectionLiveData(context: Context) : MutableLiveData<ConnectionModel>() 
         return network?.let {
             val networkCapabilities = connectivityManager.getNetworkCapabilities(network)
             val type = getConnectionType(networkCapabilities)
-            val isConnected = getConnectionStatus(networkCapabilities)
+            val isConnected = getConnectionStatus(type, networkCapabilities)
             NetworkStateModel(type, isConnected)
         } ?: NetworkStateModel(ConnectionType.NO_DATA, false)
 
@@ -114,14 +112,9 @@ class ConnectionLiveData(context: Context) : MutableLiveData<ConnectionModel>() 
     private fun getConnectionType(networkCapabilities: NetworkCapabilities?): ConnectionType {
         return when {
             networkCapabilities == null -> ConnectionType.NO_DATA
-            hasTransport(
-                networkCapabilities,
-                NetworkCapabilities.TRANSPORT_WIFI
-            ) -> ConnectionType.TRANSPORT_WIFI
-            hasTransport(
-                networkCapabilities,
-                NetworkCapabilities.TRANSPORT_CELLULAR
-            ) -> ConnectionType.TRANSPORT_CELLULAR
+            hasTransport(networkCapabilities, NetworkCapabilities.TRANSPORT_WIFI) -> ConnectionType.TRANSPORT_WIFI
+            hasTransport(networkCapabilities, NetworkCapabilities.TRANSPORT_CELLULAR) -> ConnectionType.TRANSPORT_CELLULAR
+            hasTransport(networkCapabilities, NetworkCapabilities.TRANSPORT_VPN) -> ConnectionType.TRANSPORT_VPN
             else -> ConnectionType.TRANSPORT_OTHER
         }
     }
@@ -129,11 +122,19 @@ class ConnectionLiveData(context: Context) : MutableLiveData<ConnectionModel>() 
     private fun hasTransport(networkCapabilities: NetworkCapabilities?, transportType: Int) =
         networkCapabilities?.hasTransport(transportType) ?: false
 
-    private fun getConnectionStatus(networkCapabilities: NetworkCapabilities?): Boolean {
+    private fun getConnectionStatus(type: ConnectionType, networkCapabilities: NetworkCapabilities?): Boolean {
         return networkCapabilities?.run {
-            hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
+            when (type) {
+                ConnectionType.TRANSPORT_VPN -> {
+                    hasCapability(NetworkCapabilities.NET_CAPABILITY_TRUSTED) &&
+                    hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
+                }
+                else -> {
+                    hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
                     hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED) &&
                     hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_VPN)
+                }
+            }
         } ?: false
     }
 
