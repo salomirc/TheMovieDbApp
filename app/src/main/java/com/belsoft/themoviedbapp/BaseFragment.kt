@@ -18,7 +18,7 @@ abstract class BaseFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // Get the MainViewModelFactory with all of it's dependencies constructed
-        val factory = InjectorUtils.getInstance.provideMainViewModelFactory()
+        val factory = InjectorUtils.getInstance(requireContext()).provideMainViewModelFactory()
         // Use ViewModelProviders class to create / get already created MainViewModelFactory
         mainViewModel = ViewModelProvider(requireActivity(), factory).get(MainViewModel::class.java)
     }

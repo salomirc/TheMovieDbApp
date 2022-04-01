@@ -1,30 +1,26 @@
 package com.belsoft.themoviedbapp.utils
 
-import android.app.Application
+import android.content.Context
 import com.belsoft.themoviedbapp.MainViewModel
 import com.belsoft.themoviedbapp.services.RequestHelper
 import com.belsoft.themoviedbapp.ui.search.SearchViewModel
 
-class InjectorUtils private constructor(appContext: Application) {
+class InjectorUtils private constructor(context: Context) {
 
     companion object {
         @Volatile
         private var instance: InjectorUtils? = null
 
-        @Volatile
-        lateinit var getInstance: InjectorUtils
-
-        fun getInstance(appContext: Application): InjectorUtils {
+        fun getInstance(context: Context): InjectorUtils {
             return instance ?: synchronized(this) {
-                instance ?: InjectorUtils(appContext).also {
+                instance ?: InjectorUtils(context.applicationContext).also {
                     instance = it
-                    getInstance = it
                 }
             }
         }
     }
 
-    private val requestHelper = RequestHelper(appContext)
+    private val requestHelper = RequestHelper(context)
 
     fun provideMainViewModelFactory(): ViewModelFactory<MainViewModel> {
         return ViewModelFactory {

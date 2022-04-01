@@ -38,7 +38,7 @@ class SearchFragment : HideKeyboardReadyFragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val factory = InjectorUtils.getInstance.provideSearchViewModelFactory(mainViewModel)
+        val factory = InjectorUtils.getInstance(requireContext()).provideSearchViewModelFactory(mainViewModel)
         viewModel = ViewModelProvider(this, factory).get(SearchViewModel::class.java)
     }
 
@@ -62,14 +62,14 @@ class SearchFragment : HideKeyboardReadyFragment() {
         searchViewHide = null
     }
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
+    override fun onStart() {
+        super.onStart()
         initializeUI()
         setViewModelData()
     }
 
     private fun setViewModelData() {
-//        viewModel.getTrainings()
+        // make backend calls for getting data to populate UI
     }
 
     private fun initializeUI() {
@@ -93,7 +93,7 @@ class SearchFragment : HideKeyboardReadyFragment() {
                     hideSoftKeyboard(binding.searchView)
                     binding.searchView.clearFocus()
                 }
-                activity!!.onBackPressed()
+                requireActivity().onBackPressed()
                 isRunning = false
             }
         }

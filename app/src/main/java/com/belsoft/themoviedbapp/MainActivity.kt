@@ -8,7 +8,6 @@ import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import androidx.databinding.DataBindingUtil
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.belsoft.themoviedbapp.databinding.ActivityMainBinding
 import com.belsoft.themoviedbapp.utils.InjectorUtils
@@ -35,7 +34,7 @@ class MainActivity : BaseActivity() {
     private fun setArchitectureComponents() {
 
         // Get the MainViewModelFactory with all of it's dependencies constructed
-        val factory = InjectorUtils.getInstance.provideMainViewModelFactory()
+        val factory = InjectorUtils.getInstance(this).provideMainViewModelFactory()
 
         // Obtain the ViewModel component.
         viewModel = ViewModelProvider(this, factory).get(MainViewModel::class.java)
@@ -92,10 +91,10 @@ class MainActivity : BaseActivity() {
 
         viewModel.connectionLiveData.observe(this, {
             when {
-                !it.isConnected && !it.wasDisconnected -> {
+                !it.isConnected && it.wasConnected -> {
                     viewModel.toastMessage.value = R.string.no_internet_connection
                 }
-                it.isConnected && it.wasDisconnected -> {
+                it.isConnected && !it.wasConnected -> {
                     viewModel.toastMessage.value = R.string.connected_to_internet
                 }
             }
