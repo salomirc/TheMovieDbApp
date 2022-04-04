@@ -20,9 +20,9 @@ data class NetworkStateModel(
 )
 
 enum class ConnectionType {
+    TRANSPORT_VPN,
     TRANSPORT_WIFI,
     TRANSPORT_CELLULAR,
-    TRANSPORT_VPN,
     TRANSPORT_OTHER,
     NO_DATA
 }
@@ -43,12 +43,14 @@ class ConnectionLiveData(context: Context) : MutableLiveData<ConnectionModel>() 
         override fun onAvailable(network: Network) {
             validNetworks.add(network)
             Log.d("ConnectionLiveData", "onAvailable() called, $network")
+            logState("onAvailable()")
             evaluateValidNetworks()
         }
 
         override fun onLost(network: Network) {
             validNetworks.remove(network)
-            Log.d("ConnectionLiveData", "onLost() called network = $network")
+            Log.d("ConnectionLiveData", "onLost() called, $network")
+            logState("onLost()")
             evaluateValidNetworks()
         }
     }
@@ -65,7 +67,7 @@ class ConnectionLiveData(context: Context) : MutableLiveData<ConnectionModel>() 
         Log.d("ConnectionLiveData", "checkForDisconnectedStatus() called")
         logState("onActive()")
         checkForDisconnectedStatus()
-        Log.d("ConnectionLiveData", "registerDefaultNetworkCallback")
+        Log.d("ConnectionLiveData", "registerNetworkCallback")
         connectivityManager.registerNetworkCallback(networkRequest, networkCallback)
     }
 
@@ -112,9 +114,9 @@ class ConnectionLiveData(context: Context) : MutableLiveData<ConnectionModel>() 
     private fun getConnectionType(networkCapabilities: NetworkCapabilities?): ConnectionType {
         return when {
             networkCapabilities == null -> ConnectionType.NO_DATA
+            hasTransport(networkCapabilities, NetworkCapabilities.TRANSPORT_VPN) -> ConnectionType.TRANSPORT_VPN
             hasTransport(networkCapabilities, NetworkCapabilities.TRANSPORT_WIFI) -> ConnectionType.TRANSPORT_WIFI
             hasTransport(networkCapabilities, NetworkCapabilities.TRANSPORT_CELLULAR) -> ConnectionType.TRANSPORT_CELLULAR
-            hasTransport(networkCapabilities, NetworkCapabilities.TRANSPORT_VPN) -> ConnectionType.TRANSPORT_VPN
             else -> ConnectionType.TRANSPORT_OTHER
         }
     }
@@ -131,8 +133,7 @@ class ConnectionLiveData(context: Context) : MutableLiveData<ConnectionModel>() 
                 }
                 else -> {
                     hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
-                    hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED) &&
-                    hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_VPN)
+                    hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
                 }
             }
         } ?: false
