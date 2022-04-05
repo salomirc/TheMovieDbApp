@@ -29,9 +29,7 @@ enum class ConnectionType {
 
 class ConnectionLiveData(context: Context) : MutableLiveData<ConnectionModel>() {
 
-    private val connectivityManager: ConnectivityManager = context.getSystemService(
-        ConnectivityManager::class.java
-    )
+    private val connectivityManager = context.getSystemService(ConnectivityManager::class.java)
     private val validNetworks: MutableSet<Network> = mutableSetOf()
     private var wasConnectedBefore: Boolean = true
 
@@ -43,14 +41,12 @@ class ConnectionLiveData(context: Context) : MutableLiveData<ConnectionModel>() 
         override fun onAvailable(network: Network) {
             validNetworks.add(network)
             Log.d("ConnectionLiveData", "onAvailable() called, $network")
-            logState("onAvailable()")
             evaluateValidNetworks()
         }
 
         override fun onLost(network: Network) {
             validNetworks.remove(network)
             Log.d("ConnectionLiveData", "onLost() called, $network")
-            logState("onLost()")
             evaluateValidNetworks()
         }
     }
@@ -65,7 +61,6 @@ class ConnectionLiveData(context: Context) : MutableLiveData<ConnectionModel>() 
             .build()
         validNetworks.clear()
         Log.d("ConnectionLiveData", "checkForDisconnectedStatus() called")
-        logState("onActive()")
         checkForDisconnectedStatus()
         Log.d("ConnectionLiveData", "registerNetworkCallback")
         connectivityManager.registerNetworkCallback(networkRequest, networkCallback)
@@ -85,20 +80,21 @@ class ConnectionLiveData(context: Context) : MutableLiveData<ConnectionModel>() 
     }
 
     private fun evaluateValidNetworks() {
-        evaluateNetworks(validNetworks.toList())
-    }
-
-    private fun evaluateNetworks(networks: List<Network>) {
-        evaluateActiveNetworkState(networks).also {
+        getCurrentNetworkStateModel(validNetworks.toList()).also {
             generateConnectionState(it.type, it.isConnected)
         }
     }
 
-    private fun evaluateActiveNetworkState(networks: List<Network>): NetworkStateModel {
+    private fun getCurrentNetworkStateModel(networks: List<Network>): NetworkStateModel {
         return networks
-            .map { network -> evaluateNetwork(network) }
-            .filter { it.isConnected }
+            .map { network -> evaluateNetworkType(network) }
             .minByOrNull { it.type } ?: NetworkStateModel(ConnectionType.NO_DATA, false)
+    }
+
+    private fun evaluateNetworkType(network: Network): NetworkStateModel {
+        val networkCapabilities = connectivityManager.getNetworkCapabilities(network)
+        val type = getConnectionType(networkCapabilities)
+        return NetworkStateModel(type, true)
     }
 
     private fun evaluateNetwork(network: Network?): NetworkStateModel {
@@ -159,33 +155,6 @@ class ConnectionLiveData(context: Context) : MutableLiveData<ConnectionModel>() 
         Log.d(
             "ConnectionLiveData",
             "wasConnectedBefore status new value = $wasConnectedBefore"
-        )
-    }
-
-    private fun logState(place: String) {
-        Log.d(
-            "ConnectionLiveData",
-            "$place activeNetworkInfo? = ${connectivityManager.activeNetworkInfo}"
-        )
-        Log.d(
-            "ConnectionLiveData",
-            "$place activeNetworkInfo?.isConnected = ${connectivityManager.activeNetworkInfo?.isConnected ?: false}"
-        )
-        Log.d(
-            "ConnectionLiveData",
-            "$place allNetworks: ${
-                connectivityManager.allNetworks.map { network ->
-                    evaluateNetwork(network)
-                }
-            }"
-        )
-        Log.d(
-            "ConnectionLiveData",
-            "$place validNetworks: ${validNetworks.map { network -> evaluateNetwork(network) }}"
-        )
-        Log.d(
-            "ConnectionLiveData",
-            "$place activeNetwork: ${evaluateNetwork(connectivityManager.activeNetwork)}"
         )
     }
 }
