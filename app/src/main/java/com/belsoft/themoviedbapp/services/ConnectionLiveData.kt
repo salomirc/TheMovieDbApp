@@ -1,10 +1,7 @@
 package com.belsoft.themoviedbapp.services
 
 import android.content.Context
-import android.net.ConnectivityManager
-import android.net.Network
-import android.net.NetworkCapabilities
-import android.net.NetworkRequest
+import android.net.*
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 
@@ -32,7 +29,6 @@ class ConnectionLiveData(context: Context) : MutableLiveData<ConnectionModel>() 
     private val connectivityManager: ConnectivityManager = context.getSystemService(
         ConnectivityManager::class.java
     )
-    private val validNetworks: MutableSet<Network> = mutableSetOf()
     private var wasConnectedBefore: Boolean = true
 
     val isConnected: Boolean
@@ -41,40 +37,59 @@ class ConnectionLiveData(context: Context) : MutableLiveData<ConnectionModel>() 
 
     private val networkCallback = object : ConnectivityManager.NetworkCallback() {
         override fun onAvailable(network: Network) {
-            validNetworks.add(network)
             Log.d("ConnectionLiveData", "onAvailable() called, $network")
-            logState("onAvailable()")
-            evaluateValidNetworks()
+//            logState("onAvailable()")
+//            generateConnectionState(network)
         }
 
         override fun onLost(network: Network) {
-            validNetworks.remove(network)
             Log.d("ConnectionLiveData", "onLost() called, $network")
-            logState("onLost()")
-            evaluateValidNetworks()
+//            logState("onLost()")
+            generateConnectionState(ConnectionType.NO_DATA, false)
+        }
+
+        override fun onCapabilitiesChanged(
+            network: Network,
+            networkCapabilities: NetworkCapabilities
+        ) {
+            super.onCapabilitiesChanged(network, networkCapabilities)
+            Log.d("ConnectionLiveData", "onCapabilitiesChanged() called, $networkCapabilities")
+//            logState("onCapabilitiesChanged()")
+            generateConnectionState(networkCapabilities)
+        }
+
+        override fun onLinkPropertiesChanged(network: Network, linkProperties: LinkProperties) {
+            super.onLinkPropertiesChanged(network, linkProperties)
+            Log.d("ConnectionLiveData", "onLinkPropertiesChanged() called, $linkProperties")
+//            logState("onLinkPropertiesChanged()")
         }
     }
 
     override fun onActive() {
         super.onActive()
         Log.d("ConnectionLiveData", "onActive() called")
-        val networkRequest = NetworkRequest.Builder()
-            .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-            .addCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
-            .addCapability(NetworkCapabilities.NET_CAPABILITY_NOT_VPN)
-            .build()
-        validNetworks.clear()
-        Log.d("ConnectionLiveData", "checkForDisconnectedStatus() called")
-        logState("onActive()")
-        checkForDisconnectedStatus()
-        Log.d("ConnectionLiveData", "registerNetworkCallback")
-        connectivityManager.registerNetworkCallback(networkRequest, networkCallback)
+//        logState("onActive()")
+//        Log.d("ConnectionLiveData", "calling checkForDisconnectedStatus()")
+//        checkForDisconnectedStatus()
+        Log.d("ConnectionLiveData", "calling evaluateActiveNetwork()")
+        evaluateActiveNetwork()
+        Log.d("ConnectionLiveData", "registerDefaultNetworkCallback")
+        connectivityManager.registerDefaultNetworkCallback(networkCallback)
     }
 
     override fun onInactive() {
         super.onInactive()
         Log.d("ConnectionLiveData", "unregisterNetworkCallback")
         connectivityManager.unregisterNetworkCallback(networkCallback)
+    }
+
+    private fun evaluateActiveNetwork() {
+        evaluateNetwork(connectivityManager.activeNetwork).also {
+            if (!it.isConnected) {
+                updatePreviousStatus(true)
+            }
+            generateConnectionState(it.type, it.isConnected)
+        }
     }
 
     private fun checkForDisconnectedStatus() {
@@ -84,21 +99,10 @@ class ConnectionLiveData(context: Context) : MutableLiveData<ConnectionModel>() 
         }
     }
 
-    private fun evaluateValidNetworks() {
-        evaluateNetworks(validNetworks.toList())
-    }
-
-    private fun evaluateNetworks(networks: List<Network>) {
-        evaluateActiveNetworkState(networks).also {
-            generateConnectionState(it.type, it.isConnected)
-        }
-    }
-
-    private fun evaluateActiveNetworkState(networks: List<Network>): NetworkStateModel {
-        return networks
-            .map { network -> evaluateNetwork(network) }
-            .filter { it.isConnected }
-            .minByOrNull { it.type } ?: NetworkStateModel(ConnectionType.NO_DATA, false)
+    private fun evaluateCapabilities(networkCapabilities: NetworkCapabilities): NetworkStateModel {
+        val type = getConnectionType(networkCapabilities)
+        val isConnected = getConnectionStatus(type, networkCapabilities)
+        return NetworkStateModel(type, isConnected)
     }
 
     private fun evaluateNetwork(network: Network?): NetworkStateModel {
@@ -137,6 +141,18 @@ class ConnectionLiveData(context: Context) : MutableLiveData<ConnectionModel>() 
                 }
             }
         } ?: false
+    }
+
+    private fun generateConnectionState(network: Network?) {
+        evaluateNetwork(network).also {
+            generateConnectionState(it.type, it.isConnected)
+        }
+    }
+
+    private fun generateConnectionState(networkCapabilities: NetworkCapabilities) {
+        evaluateCapabilities(networkCapabilities).also {
+            generateConnectionState(it.type, it.isConnected)
+        }
     }
 
     private fun generateConnectionState(networkType: ConnectionType, isConnected: Boolean) {
@@ -178,10 +194,6 @@ class ConnectionLiveData(context: Context) : MutableLiveData<ConnectionModel>() 
                     evaluateNetwork(network)
                 }
             }"
-        )
-        Log.d(
-            "ConnectionLiveData",
-            "$place validNetworks: ${validNetworks.map { network -> evaluateNetwork(network) }}"
         )
         Log.d(
             "ConnectionLiveData",
