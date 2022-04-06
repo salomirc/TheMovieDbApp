@@ -24,9 +24,6 @@ class RequestHelper(context: Context) : IRequestHelper {
         context
     )
 
-    override val hasInternetConnection: Boolean
-        get() = connectionLiveData.isConnected
-
     private val okHttpClient = OkHttpClient.Builder()
         .build()
 

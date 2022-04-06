@@ -7,6 +7,9 @@ import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 data class ConnectionModel(
     val type: ConnectionType,
@@ -32,12 +35,11 @@ class ConnectionLiveData(context: Context) : MutableLiveData<ConnectionModel>() 
     private val connectivityManager = context.getSystemService(ConnectivityManager::class.java)
     private val validNetworks: MutableSet<Network> = mutableSetOf()
     private var wasConnectedBefore: Boolean = true
-
-    val isConnected: Boolean
-        get() = evaluateNetwork(connectivityManager.activeNetwork).isConnected
+    private val localCoroutineScope = MainScope()
 
 
     private val networkCallback = object : ConnectivityManager.NetworkCallback() {
+
         override fun onAvailable(network: Network) {
             validNetworks.add(network)
             Log.d("ConnectionLiveData", "onAvailable() called, $network")
@@ -57,6 +59,8 @@ class ConnectionLiveData(context: Context) : MutableLiveData<ConnectionModel>() 
         val networkRequest = NetworkRequest.Builder()
             .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
             .addCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
+            .addCapability(NetworkCapabilities.NET_CAPABILITY_NOT_RESTRICTED)
+            .addCapability(NetworkCapabilities.NET_CAPABILITY_TRUSTED)
             .addCapability(NetworkCapabilities.NET_CAPABILITY_NOT_VPN)
             .build()
         validNetworks.clear()
@@ -73,10 +77,25 @@ class ConnectionLiveData(context: Context) : MutableLiveData<ConnectionModel>() 
     }
 
     private fun checkForDisconnectedStatus() {
-        if (!isConnected) {
-            updatePreviousStatus(true)
-            generateConnectionState(ConnectionType.NO_DATA, false)
+        val model = evaluateNetwork(connectivityManager.activeNetwork)
+        if (!model.isConnected) {
+            postDisconnectedStatus()
+        } else {
+            if (model.type == ConnectionType.TRANSPORT_VPN) {
+                localCoroutineScope.launch {
+                    Log.d("ConnectionLiveData", "checkForDisconnectedStatus() waiting ... 1s")
+                    delay(1000)
+                    if (validNetworks.isEmpty()) {
+                        postDisconnectedStatus()
+                    }
+                }
+            }
         }
+    }
+
+    private fun postDisconnectedStatus() {
+        updatePreviousStatus(true)
+        generateConnectionState(ConnectionType.NO_DATA, false)
     }
 
     private fun evaluateValidNetworks() {

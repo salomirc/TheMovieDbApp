@@ -55,6 +55,17 @@ class SearchFragment : HideKeyboardReadyFragment() {
         return binding.root
     }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        viewModel.connectionLiveData.observe(viewLifecycleOwner) {
+            it?.let {
+                if (it.isConnected && !viewModel.isInitialised) {
+                    viewModel.initialise()
+                }
+            }
+        }
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
@@ -65,11 +76,6 @@ class SearchFragment : HideKeyboardReadyFragment() {
     override fun onStart() {
         super.onStart()
         initializeUI()
-        setViewModelData()
-    }
-
-    private fun setViewModelData() {
-        // make backend calls for getting data to populate UI
     }
 
     private fun initializeUI() {
