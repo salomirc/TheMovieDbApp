@@ -10,7 +10,7 @@ import com.belsoft.themoviedbapp.api.API_KEY
 import com.belsoft.themoviedbapp.models.SearchSelectItemModel
 import com.belsoft.themoviedbapp.models.api.MovieDbResponseModel
 import com.belsoft.themoviedbapp.models.asViewModel
-import com.belsoft.themoviedbapp.services.ConnectionModel
+import com.belsoft.themoviedbapp.services.ConnectionLiveData
 import com.belsoft.themoviedbapp.services.IRequestHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -21,7 +21,7 @@ class SearchViewModel(private val mainViewModel: IMainViewModel,
 
     var isInitialised = false
 
-    val connectionLiveData: LiveData<ConnectionModel>
+    val connectionLiveData: ConnectionLiveData
         get() = requestHelper.connectionLiveData
 
     private val _searchSelectItems = MutableLiveData<List<SearchSelectItemModel>>()
@@ -43,7 +43,7 @@ class SearchViewModel(private val mainViewModel: IMainViewModel,
 
     suspend fun getData(search: String): Boolean {
         var isSuccessful = false
-        if (requestHelper.connectionLiveData.value?.isConnected != true ) {
+        if (!connectionLiveData.hasInternetConnectivity) {
             mainViewModel.toastMessage.value = R.string.no_internet_connection
             return false
         }

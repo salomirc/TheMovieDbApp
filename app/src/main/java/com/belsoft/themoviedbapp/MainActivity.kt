@@ -3,6 +3,7 @@ package com.belsoft.themoviedbapp
 import android.content.Context
 import android.graphics.Rect
 import android.os.Bundle
+import android.util.Log
 import android.view.Gravity
 import android.view.View
 import android.view.inputmethod.InputMethodManager
@@ -10,6 +11,7 @@ import android.widget.Toast
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.ViewModelProvider
 import com.belsoft.themoviedbapp.databinding.ActivityMainBinding
+import com.belsoft.themoviedbapp.services.ConnectionModel
 import com.belsoft.themoviedbapp.utils.InjectorUtils
 
 class MainActivity : BaseActivity() {
@@ -90,15 +92,24 @@ class MainActivity : BaseActivity() {
         })
 
         viewModel.connectionLiveData.observe(this, {
+            Log.d("ConnectionLiveData", "MainActivity observe() called, $it")
             when {
                 !it.isConnected && it.wasConnected -> {
-                    viewModel.toastMessage.value = R.string.no_internet_connection
+                    displayHaveNoInternetConnection()
                 }
                 it.isConnected && !it.wasConnected -> {
-                    viewModel.toastMessage.value = R.string.connected_to_internet
+                    displayHaveInternetConnection()
                 }
             }
         })
+    }
+
+    private fun displayHaveInternetConnection() {
+        viewModel.toastMessage.value = R.string.connected_to_internet
+    }
+
+    private fun displayHaveNoInternetConnection() {
+        viewModel.toastMessage.value = R.string.no_internet_connection
     }
 
     private fun displayToastMessage(context: Context, message: String) {

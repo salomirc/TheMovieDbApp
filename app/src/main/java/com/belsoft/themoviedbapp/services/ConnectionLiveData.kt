@@ -7,9 +7,6 @@ import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 data class ConnectionModel(
     val type: ConnectionType,
@@ -33,10 +30,12 @@ enum class ConnectionType {
 class ConnectionLiveData(context: Context) : MutableLiveData<ConnectionModel>() {
 
     private val connectivityManager = context.getSystemService(ConnectivityManager::class.java)
-    private val validNetworks: MutableSet<Network> = mutableSetOf()
+    private val validNetworks: MutableList<Network> = mutableListOf()
     private var wasConnectedBefore: Boolean = true
-    private val localCoroutineScope = MainScope()
+    private var isFirstTimeRunning: Boolean = true
 
+    val hasInternetConnectivity: Boolean
+        get() = validNetworks.isNotEmpty()
 
     private val networkCallback = object : ConnectivityManager.NetworkCallback() {
 
@@ -53,9 +52,8 @@ class ConnectionLiveData(context: Context) : MutableLiveData<ConnectionModel>() 
         }
     }
 
-    override fun onActive() {
-        super.onActive()
-        Log.d("ConnectionLiveData", "onActive() called")
+    init {
+        Log.d("ConnectionLiveData", "init block called")
         val networkRequest = NetworkRequest.Builder()
             .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
             .addCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
@@ -63,39 +61,18 @@ class ConnectionLiveData(context: Context) : MutableLiveData<ConnectionModel>() 
             .addCapability(NetworkCapabilities.NET_CAPABILITY_TRUSTED)
             .addCapability(NetworkCapabilities.NET_CAPABILITY_NOT_VPN)
             .build()
-        validNetworks.clear()
-        Log.d("ConnectionLiveData", "checkForDisconnectedStatus() called")
-        checkForDisconnectedStatus()
         Log.d("ConnectionLiveData", "registerNetworkCallback")
         connectivityManager.registerNetworkCallback(networkRequest, networkCallback)
     }
 
-    override fun onInactive() {
-        super.onInactive()
-        Log.d("ConnectionLiveData", "unregisterNetworkCallback")
-        connectivityManager.unregisterNetworkCallback(networkCallback)
-    }
-
-    private fun checkForDisconnectedStatus() {
-        val model = evaluateNetwork(connectivityManager.activeNetwork)
-        if (!model.isConnected) {
-            postDisconnectedStatus()
-        } else {
-            if (model.type == ConnectionType.TRANSPORT_VPN) {
-                localCoroutineScope.launch {
-                    Log.d("ConnectionLiveData", "checkForDisconnectedStatus() waiting ... 1s")
-                    delay(1000)
-                    if (validNetworks.isEmpty()) {
-                        postDisconnectedStatus()
-                    }
-                }
-            }
+    override fun onActive() {
+        super.onActive()
+        Log.d("ConnectionLiveData", "onActive() called")
+        if (isFirstTimeRunning && validNetworks.isEmpty()) {
+            Log.d("ConnectionLiveData", "onActive() generating connection state disconnected")
+            generateConnectionState(ConnectionType.NO_DATA, false)
         }
-    }
-
-    private fun postDisconnectedStatus() {
-        updatePreviousStatus(true)
-        generateConnectionState(ConnectionType.NO_DATA, false)
+        isFirstTimeRunning = false
     }
 
     private fun evaluateValidNetworks() {
@@ -116,16 +93,6 @@ class ConnectionLiveData(context: Context) : MutableLiveData<ConnectionModel>() 
         return NetworkStateModel(type, true)
     }
 
-    private fun evaluateNetwork(network: Network?): NetworkStateModel {
-        return network?.let {
-            val networkCapabilities = connectivityManager.getNetworkCapabilities(network)
-            val type = getConnectionType(networkCapabilities)
-            val isConnected = getConnectionStatus(type, networkCapabilities)
-            NetworkStateModel(type, isConnected)
-        } ?: NetworkStateModel(ConnectionType.NO_DATA, false)
-
-    }
-
     private fun getConnectionType(networkCapabilities: NetworkCapabilities?): ConnectionType {
         return when {
             networkCapabilities == null -> ConnectionType.NO_DATA
@@ -138,21 +105,6 @@ class ConnectionLiveData(context: Context) : MutableLiveData<ConnectionModel>() 
 
     private fun hasTransport(networkCapabilities: NetworkCapabilities?, transportType: Int) =
         networkCapabilities?.hasTransport(transportType) ?: false
-
-    private fun getConnectionStatus(type: ConnectionType, networkCapabilities: NetworkCapabilities?): Boolean {
-        return networkCapabilities?.run {
-            when (type) {
-                ConnectionType.TRANSPORT_VPN -> {
-                    hasCapability(NetworkCapabilities.NET_CAPABILITY_TRUSTED) &&
-                    hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
-                }
-                else -> {
-                    hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
-                    hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
-                }
-            }
-        } ?: false
-    }
 
     private fun generateConnectionState(networkType: ConnectionType, isConnected: Boolean) {
         handleNetworkInfo(networkType, isConnected)
