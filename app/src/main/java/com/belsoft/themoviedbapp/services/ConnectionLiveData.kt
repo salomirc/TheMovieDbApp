@@ -67,12 +67,13 @@ class ConnectionLiveData(context: Context) : MutableLiveData<ConnectionModel>() 
 
     override fun onActive() {
         super.onActive()
-        Log.d("ConnectionLiveData", "onActive() called")
-        if (isFirstTimeRunning && validNetworks.isEmpty()) {
-            Log.d("ConnectionLiveData", "onActive() generating connection state disconnected")
-            generateConnectionState(ConnectionType.NO_DATA, false)
+        if (isFirstTimeRunning) {
+            if (validNetworks.isEmpty()) {
+                Log.d("ConnectionLiveData", "onActive() generating connection state disconnected")
+                generateConnectionState(ConnectionType.NO_DATA, false)
+            }
+            isFirstTimeRunning = false
         }
-        isFirstTimeRunning = false
     }
 
     private fun evaluateValidNetworks() {

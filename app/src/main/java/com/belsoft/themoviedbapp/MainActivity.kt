@@ -93,23 +93,27 @@ class MainActivity : BaseActivity() {
 
         viewModel.connectionLiveData.observe(this, {
             Log.d("ConnectionLiveData", "MainActivity observe() called, $it")
+            if (it.isConnected == viewModel.previousConnectionState?.isConnected) return@observe
             when {
-                !it.isConnected && it.wasConnected -> {
-                    displayHaveNoInternetConnection()
-                }
-                it.isConnected && !it.wasConnected -> {
+                it.isConnected-> {
+                    Log.d("ConnectionLiveData", "MainActivity observe() display YES Internet")
                     displayHaveInternetConnection()
                 }
+                else -> {
+                    Log.d("ConnectionLiveData", "MainActivity observe() display NO Internet")
+                    displayHaveNoInternetConnection()
+                }
             }
+            viewModel.previousConnectionState = it
         })
-    }
-
-    private fun displayHaveInternetConnection() {
-        viewModel.toastMessage.value = R.string.connected_to_internet
     }
 
     private fun displayHaveNoInternetConnection() {
         viewModel.toastMessage.value = R.string.no_internet_connection
+    }
+
+    private fun displayHaveInternetConnection() {
+        viewModel.toastMessage.value = R.string.connected_to_internet
     }
 
     private fun displayToastMessage(context: Context, message: String) {
