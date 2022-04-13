@@ -44,7 +44,7 @@ class SearchViewModel(private val mainViewModel: IMainViewModel,
     suspend fun getData(search: String): Boolean {
         var isSuccessful = false
         if (!connectionLiveData.hasInternetConnectivity) {
-            mainViewModel.toastMessage.value = R.string.no_internet_connection
+            mainViewModel.forceSetConnectionDialogState(true)
             return false
         }
 

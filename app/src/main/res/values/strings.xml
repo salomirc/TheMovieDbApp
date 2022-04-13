@@ -3,6 +3,10 @@
     <string name="the_movie_db_search">The Movie Db Search</string>
     <string name="search">Search</string>
     <string name="back_arrow">Back arrow</string>
+    <string name="ok_button_txt">OK</string>
+    <string name="decline_button_txt">Decline</string>
+    <string name="cancel_button_txt">Cancel</string>
+    <string name="internet_connection">Internet connection</string>
     <string name="no_internet_connection">No internet connection!</string>
     <string name="connected_to_internet">Connected to internet!</string>
     <string name="something_went_wrong">Sorry… something went wrong.</string>

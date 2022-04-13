@@ -7,17 +7,23 @@ import android.util.Log
 import android.view.Gravity
 import android.view.View
 import android.view.inputmethod.InputMethodManager
+import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
+import androidx.core.view.setPadding
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.ViewModelProvider
 import com.belsoft.themoviedbapp.databinding.ActivityMainBinding
-import com.belsoft.themoviedbapp.services.ConnectionModel
+import com.belsoft.themoviedbapp.databinding.ConnectionDalogViewBinding
 import com.belsoft.themoviedbapp.utils.InjectorUtils
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.resources.TextAppearance
 
 class MainActivity : BaseActivity() {
 
     private lateinit var viewModel: MainViewModel
     private lateinit var binding: ActivityMainBinding
+    private var internetConnDialog: AlertDialog? = null
 
     companion object {
         lateinit var isKeyboardOnScreen: () -> Boolean
@@ -93,32 +99,59 @@ class MainActivity : BaseActivity() {
 
         viewModel.connectionLiveData.observe(this, {
             Log.d("ConnectionLiveData", "MainActivity observe() called, $it")
-            if (it.isConnected == viewModel.previousConnectionState?.isConnected) return@observe
             when {
-                it.isConnected-> {
-                    Log.d("ConnectionLiveData", "MainActivity observe() display YES Internet")
-                    displayHaveInternetConnection()
+                !it.isConnected && it.wasConnected -> {
+                    viewModel.setConnectionDialogState(true)
                 }
-                else -> {
-                    Log.d("ConnectionLiveData", "MainActivity observe() display NO Internet")
-                    displayHaveNoInternetConnection()
+                it.isConnected && !it.wasConnected -> {
+                    viewModel.setConnectionDialogState(false)
                 }
             }
-            viewModel.previousConnectionState = it
         })
-    }
 
-    private fun displayHaveNoInternetConnection() {
-        viewModel.toastMessage.value = R.string.no_internet_connection
-    }
-
-    private fun displayHaveInternetConnection() {
-        viewModel.toastMessage.value = R.string.connected_to_internet
+        viewModel.connectionDialogState.observe(this, {
+            it?.let {
+                if (it) {
+                    showNoInternetConnectionAlertDialog()
+                } else {
+                    hideNoInternetConnectionAlertDialog()
+                }
+            }
+        })
     }
 
     private fun displayToastMessage(context: Context, message: String) {
         val toast = Toast.makeText(context, message, Toast.LENGTH_LONG)
         toast.setGravity(Gravity.CENTER,0, 0)
         toast.show()
+    }
+
+    private fun showNoInternetConnectionAlertDialog() {
+        if (internetConnDialog == null) {
+            val viewBinding = ConnectionDalogViewBinding.inflate(layoutInflater).apply {
+                button.setOnClickListener {
+                    internetConnDialog?.dismiss()
+                }
+            }
+            internetConnDialog = MaterialAlertDialogBuilder(this)
+//                .setView(viewBinding.root)
+//                .setTitle(R.string.internet_connection)
+                .setMessage(R.string.no_internet_connection)
+                .setPositiveButton(R.string.ok_button_txt, null)
+//                .setNegativeButton(R.string.decline_button_txt, null)
+//                .setNeutralButton(R.string.cancel_button_txt, null)
+                .setOnDismissListener {
+                    viewModel.setConnectionDialogIsDismissed()
+                    hideNoInternetConnectionAlertDialog()
+                }
+                .show()
+        }
+    }
+
+    private fun hideNoInternetConnectionAlertDialog() {
+        internetConnDialog?.let {
+          it.dismiss()
+          internetConnDialog = null
+        }
     }
 }
