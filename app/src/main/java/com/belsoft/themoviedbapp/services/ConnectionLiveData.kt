@@ -7,6 +7,9 @@ import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 data class ConnectionModel(
     val type: ConnectionType,
@@ -30,9 +33,9 @@ enum class ConnectionType {
 class ConnectionLiveData(context: Context) : MutableLiveData<ConnectionModel>() {
 
     private val connectivityManager = context.getSystemService(ConnectivityManager::class.java)
+    private val localCoroutineScope = MainScope()
     private val validNetworks: MutableList<Network> = mutableListOf()
     private var wasConnectedBefore: Boolean = true
-    private var isFirstTimeRunning: Boolean = true
 
     val hasInternetConnectivity: Boolean
         get() = validNetworks.isNotEmpty()
@@ -52,8 +55,10 @@ class ConnectionLiveData(context: Context) : MutableLiveData<ConnectionModel>() 
         }
     }
 
-    init {
-        Log.d("ConnectionLiveData", "init block called")
+    override fun onActive() {
+        super.onActive()
+        Log.d("ConnectionLiveData", "onActive() called")
+        validNetworks.clear()
         val networkRequest = NetworkRequest.Builder()
             .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
             .addCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
@@ -61,18 +66,26 @@ class ConnectionLiveData(context: Context) : MutableLiveData<ConnectionModel>() 
             .addCapability(NetworkCapabilities.NET_CAPABILITY_TRUSTED)
             .addCapability(NetworkCapabilities.NET_CAPABILITY_NOT_VPN)
             .build()
+        Log.d("ConnectionLiveData", "checkForDisconnectedStatus() called, waiting for delay ...")
+        checkForDisconnectedStatus()
         Log.d("ConnectionLiveData", "registerNetworkCallback")
         connectivityManager.registerNetworkCallback(networkRequest, networkCallback)
     }
 
-    override fun onActive() {
-        super.onActive()
-        if (isFirstTimeRunning) {
+    override fun onInactive() {
+        super.onInactive()
+        Log.d("ConnectionLiveData", "unregisterNetworkCallback")
+        connectivityManager.unregisterNetworkCallback(networkCallback)
+    }
+
+    private fun checkForDisconnectedStatus() {
+        localCoroutineScope.launch {
+            delay(500)
             if (validNetworks.isEmpty()) {
-                Log.d("ConnectionLiveData", "onActive() generating connection state disconnected")
+                Log.d("ConnectionLiveData", "onActive() after delay generating connection state disconnected")
+                updatePreviousStatus(true)
                 generateConnectionState(ConnectionType.NO_DATA, false)
             }
-            isFirstTimeRunning = false
         }
     }
 
