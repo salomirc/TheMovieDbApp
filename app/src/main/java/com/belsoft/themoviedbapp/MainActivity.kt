@@ -142,7 +142,7 @@ class MainActivity : BaseActivity() {
 //                .setNeutralButton(R.string.cancel_button_txt, null)
                 .setOnDismissListener {
                     viewModel.setConnectionDialogIsDismissed()
-                    hideNoInternetConnectionAlertDialog()
+                    internetConnDialog = null
                 }
                 .show()
         }

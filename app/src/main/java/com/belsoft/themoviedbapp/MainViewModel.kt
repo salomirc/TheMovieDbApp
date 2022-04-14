@@ -25,7 +25,7 @@ class MainViewModel(private val requestHelper: IRequestHelper) : BaseViewModel()
         internetConnectionDialogState.forceSetMutableLiveDataValue(isShown)
     }
 
-    fun setConnectionDialogIsDismissed() {
+    override fun setConnectionDialogIsDismissed() {
         internetConnectionDialogState.setDialogIsDismissed()
     }
 }

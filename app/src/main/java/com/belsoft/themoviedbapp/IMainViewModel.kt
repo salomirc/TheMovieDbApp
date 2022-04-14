@@ -9,4 +9,5 @@ interface IMainViewModel {
     val internetConnectionDialogState: InternetConnectionDialogStateModel
     fun setConnectionDialogState(isShown: Boolean)
     fun forceSetConnectionDialogState(isShown: Boolean)
+    fun setConnectionDialogIsDismissed()
 }
