@@ -7,17 +7,13 @@ import android.util.Log
 import android.view.Gravity
 import android.view.View
 import android.view.inputmethod.InputMethodManager
-import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
-import androidx.core.view.setPadding
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.ViewModelProvider
 import com.belsoft.themoviedbapp.databinding.ActivityMainBinding
-import com.belsoft.themoviedbapp.databinding.ConnectionDalogViewBinding
 import com.belsoft.themoviedbapp.utils.InjectorUtils
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.google.android.material.resources.TextAppearance
 
 class MainActivity : BaseActivity() {
 
@@ -128,11 +124,11 @@ class MainActivity : BaseActivity() {
 
     private fun showNoInternetConnectionAlertDialog() {
         if (internetConnDialog == null) {
-            val viewBinding = ConnectionDalogViewBinding.inflate(layoutInflater).apply {
-                button.setOnClickListener {
-                    internetConnDialog?.dismiss()
-                }
-            }
+//            val viewBinding = ConnectionDalogViewBinding.inflate(layoutInflater).apply {
+//                button.setOnClickListener {
+//                    internetConnDialog?.dismiss()
+//                }
+//            }
             internetConnDialog = MaterialAlertDialogBuilder(this)
 //                .setView(viewBinding.root)
 //                .setTitle(R.string.internet_connection)
