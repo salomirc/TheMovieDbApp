@@ -27,26 +27,4 @@
         <item name="colorAccent">@color/purple_200</item>
     </style>
 
-    <style name="CustomMaterialAlertDialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
-        <item name="buttonBarPositiveButtonStyle">@style/CustomMaterialAlertDialogButton</item>
-        <item name="buttonBarNegativeButtonStyle">@style/CustomMaterialAlertDialogButton</item>
-        <item name="buttonBarNeutralButtonStyle">@style/CustomMaterialAlertDialogButton</item>
-    </style>
-
-    <style name="CustomMaterialAlertDialogButton" parent="@style/CustomMaterialAlertDialogButton2">
-        <item name="textAllCaps">true</item>
-    </style>
-
-    <style name="CustomMaterialAlertDialogButton2" parent="Widget.Material3.Button">
-        <item name="textAllCaps">true</item>
-        <item name="android:minHeight">1dp</item>
-        <item name="android:minWidth">10dp</item>
-        <item name="android:textSize">@dimen/abc_text_size_small_material</item>
-        <item name="android:fontFamily">@font/roboto</item>
-    </style>
-
-    <style name="CustomMaterialAlertDialogText2" parent="TextAppearance.AppCompat.Body1">
-        <item name="android:fontFamily">@font/roboto</item>
-    </style>
-
 </resources>

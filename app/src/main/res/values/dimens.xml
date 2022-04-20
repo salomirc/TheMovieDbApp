@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="usp_text_view_margin_end">32dp</dimen>
+    <dimen name="usp_icon_width">24dp</dimen>
+    <dimen name="usp_icon_height">24dp</dimen>
+</resources>

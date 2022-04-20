@@ -48,4 +48,14 @@
         <item name="android:fontFamily">@font/roboto</item>
     </style>
 
+    <style name="PushPromotionLayerUspCaption">
+        <item name="android:textSize">13sp</item>
+        <item name="android:lineSpacingExtra">7sp</item>
+    </style>
+
+    <style name="UspCustomViewDefaultStyle">
+        <item name="caption_text">Usp caption txt</item>
+        <item name="icon">@drawable/img_placeholder</item>
+    </style>
+
 </resources>
