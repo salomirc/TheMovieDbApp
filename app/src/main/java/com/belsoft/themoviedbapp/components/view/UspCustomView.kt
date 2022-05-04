@@ -12,7 +12,7 @@ class UspCustomView @JvmOverloads constructor(
         context: Context,
         attrs: AttributeSet? = null,
         defStyleAttr: Int = 0,
-        defStyleRes: Int = 0
+        defStyleRes: Int = R.style.UspCustomViewDefaultStyle
 ) : FrameLayout(context, attrs, defStyleAttr, defStyleRes) {
 
     private val imageView: ImageView

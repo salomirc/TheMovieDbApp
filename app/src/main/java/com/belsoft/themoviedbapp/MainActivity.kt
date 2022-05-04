@@ -11,6 +11,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.ViewModelProvider
+import com.belsoft.themoviedbapp.components.view.UspCustomView
 import com.belsoft.themoviedbapp.databinding.ActivityMainBinding
 import com.belsoft.themoviedbapp.databinding.ConnectionDialogViewBinding
 import com.belsoft.themoviedbapp.utils.InjectorUtils
@@ -131,7 +132,8 @@ class MainActivity : BaseActivity() {
                 }
             }
             internetConnDialog = MaterialAlertDialogBuilder(this)
-                .setView(viewBinding.root)
+                .setView(UspCustomView(this))
+//                .setView(viewBinding.root)
 //                .setTitle(R.string.internet_connection)
 //                .setMessage(R.string.no_internet_connection)
 //                .setPositiveButton(R.string.ok_button_txt, null)
