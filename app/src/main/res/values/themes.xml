@@ -1,6 +1,14 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.Material3.DayNight.NoActionBar">
+    <style name="AppThemeBase" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Status bar color. -->
+        <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>
+        <!-- Customize your theme here. -->
+        <item name="android:textAllCaps">false</item>
+        <item name="materialAlertDialogTheme">@style/CustomMaterialAlertDialog</item>
+    </style>
+
+    <style name="AppTheme" parent="AppThemeBase">
         <!-- Primary brand color. -->
         <item name="colorPrimary">@color/purple_500</item>
         <item name="colorPrimaryVariant">@color/purple_700</item>
@@ -9,18 +17,18 @@
         <item name="colorSecondary">@color/teal_200</item>
         <item name="colorSecondaryVariant">@color/teal_700</item>
         <item name="colorOnSecondary">@color/black</item>
-        <!-- Status bar color. -->
-        <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>
         <!-- Customize your theme here. -->
-        <item name="android:textAllCaps">false</item>
-        <item name="materialAlertDialogTheme">@style/CustomMaterialAlertDialog</item>
     </style>
 
-    <style name="SplashTheme" parent ="Theme.Material3.Light.NoActionBar">
+    <style name="SplashThemeBase" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="android:windowBackground">@drawable/splash_screen</item>
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowFullscreen">true</item>
         <item name="android:windowLayoutInDisplayCutoutMode" tools:targetApi="28">shortEdges</item>
+    </style>
+
+    <style name="SplashTheme" parent="SplashThemeBase">
+        <item name="colorAccentCustom">@color/green</item>
     </style>
 
     <style name="AppTheme.ProgressBar">
@@ -38,14 +46,15 @@
     
     <style name="CustomMaterialAlertDialogButton2" parent="Widget.Material3.Button">
         <item name="textAllCaps">true</item>
-        <item name="android:minHeight">1dp</item>
-        <item name="android:minWidth">1dp</item>
-        <item name="android:textSize">@dimen/abc_text_size_small_material</item>
-        <item name="android:fontFamily">@font/roboto</item>
+        <item name="android:textSize">@dimen/abc_text_size_medium_material</item>
+        <item name="android:fontFamily">@font/dancing_script_bold</item>
+        <item name="android:textColor">@color/m3_button_foreground_color_selector</item>
     </style>
 
-    <style name="CustomMaterialAlertDialogText2" parent="TextAppearance.AppCompat.Body1">
-        <item name="android:fontFamily">@font/roboto</item>
+    <style name="CustomMaterialAlertDialogText2" parent="TextAppearance.Material3.DisplaySmall">
+        <item name="android:fontFamily">@font/dancing_script_bold</item>
+        <item name="fontFamily">@font/dancing_script_bold</item>
+        <item name="android:textSize">32sp</item>
     </style>
 
 </resources>
