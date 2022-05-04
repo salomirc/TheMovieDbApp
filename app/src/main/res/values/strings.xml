@@ -10,4 +10,6 @@
     <string name="no_internet_connection">No internet connection!</string>
     <string name="connected_to_internet">Connected to internet!</string>
     <string name="something_went_wrong">Sorry… something went wrong.</string>
+    <string name="image_caption">Image\nCaption</string>
+    <string name="todo">TODO</string>
 </resources>
