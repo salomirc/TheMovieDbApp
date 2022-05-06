@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Custom attributes -->
-    <attr format="color" name="colorAccentCustom" />
+    <attr name="colorAccentCustom" format="color" />
+    <attr name="uspCustomViewStyle" format="reference" />
 </resources>

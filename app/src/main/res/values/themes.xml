@@ -6,6 +6,7 @@
         <!-- Customize your theme here. -->
         <item name="android:textAllCaps">false</item>
         <item name="materialAlertDialogTheme">@style/CustomMaterialAlertDialog</item>
+        <item name="uspCustomViewStyle">@style/UspCustomViewDefaultStyle</item>
     </style>
 
     <style name="AppTheme" parent="AppThemeBase">
@@ -57,14 +58,11 @@
         <item name="android:textSize">32sp</item>
     </style>
 
-    <style name="PushPromotionLayerUspCaption">
-        <item name="android:textSize">13sp</item>
-        <item name="android:lineSpacingExtra">7sp</item>
-    </style>
-
     <style name="UspCustomViewDefaultStyle">
-        <item name="caption_text">Usp caption txt</item>
-        <item name="icon">@drawable/img_placeholder</item>
+        <item name="caption_text">@string/image_caption_txt_from_style</item>
+        <item name="icon">@drawable/the_movie_db_icon</item>
+        <item name="icon_width">@dimen/usp_icon_width</item>
+        <item name="icon_height">@dimen/usp_icon_height</item>
     </style>
 
 </resources>

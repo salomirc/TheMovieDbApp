@@ -1,30 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<layout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:gravity="center"
-    android:orientation="vertical"
-    android:padding="20dp"
-    android:background="@android:color/holo_orange_light"
-    tools:ignore="UseCompoundDrawables">
+    xmlns:tools="http://schemas.android.com/tools">
 
-    <ImageView
-        android:id="@+id/icon"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginBottom="4dp"
-        app:srcCompat="@drawable/img_placeholder"
-        android:contentDescription="@string/todo" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="20dp"
+        android:background="@android:color/holo_orange_light"
+        tools:ignore="UseCompoundDrawables">
 
-    <TextView
-        android:id="@+id/caption"
-        style="@style/PushPromotionLayerUspCaption"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:text="@string/image_caption" />
-</LinearLayout>
+        <ImageView
+            android:id="@+id/imageView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="4dp"
+            android:contentDescription="@string/content_description"
+            app:srcCompat="@drawable/img_placeholder" />
+
+        <TextView
+            android:id="@+id/textView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:textSize="13sp"
+            android:lineSpacingExtra="7sp"
+            android:textAlignment="center"
+            android:text="@string/image_caption" />
+    </LinearLayout>
+</layout>

@@ -11,5 +11,7 @@
     <string name="connected_to_internet">Connected to internet!</string>
     <string name="something_went_wrong">Sorry… something went wrong.</string>
     <string name="image_caption">Image\nCaption</string>
-    <string name="todo">TODO</string>
+    <string name="image_caption_txt_from_style">Image Caption \ntext from style</string>
+    <string name="image_caption_txt_from_xml">Image Caption \ntext from xml</string>
+    <string name="content_description">Content description</string>
 </resources>
