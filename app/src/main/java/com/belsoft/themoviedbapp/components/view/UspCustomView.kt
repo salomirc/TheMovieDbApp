@@ -1,6 +1,7 @@
 package com.belsoft.themoviedbapp.components.view
 
 import android.content.Context
+import android.graphics.drawable.Drawable
 import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.view.View
@@ -23,8 +24,6 @@ class UspCustomView @JvmOverloads constructor(
         this,
         true
     )
-    private val imageView = binding.imageView
-    private val textView = binding.textView
 
 //    private val imageView: ImageView
 //    private val textView: TextView
@@ -34,37 +33,46 @@ class UspCustomView @JvmOverloads constructor(
 //        imageView = findViewById(R.id.icon)
 //        textView = findViewById(R.id.caption)
 
-        val attributes = context.obtainStyledAttributes(
+        var imageViewWidth = NOT_SET_BY_ATTR
+        var imageViewHeight = NOT_SET_BY_ATTR
+        var iconDrawable: Drawable? = null
+        var captionText: String? = null
+
+        context.obtainStyledAttributes(
             attrs,
             R.styleable.UspCustomView,
             defStyleAttr,
             defStyleRes
-        )
-        val imageViewWidth =
-            attributes.getDimensionPixelSize(R.styleable.UspCustomView_icon_width, -3)
-        val imageViewHeight =
-            attributes.getDimensionPixelSize(R.styleable.UspCustomView_icon_height, -3)
-        setViewDimensionsPx(imageView, imageViewWidth, imageViewHeight)
+        ).apply {
+            try {
+                imageViewWidth =
+                    getDimensionPixelSize(R.styleable.UspCustomView_icon_width, NOT_SET_BY_ATTR)
+                imageViewHeight =
+                    getDimensionPixelSize(R.styleable.UspCustomView_icon_height, NOT_SET_BY_ATTR)
+                iconDrawable = getDrawable(R.styleable.UspCustomView_icon)
+                captionText = getString(R.styleable.UspCustomView_caption_text)
+            } finally {
+                recycle()
+            }
+        }
 
-        attributes.getDrawable(R.styleable.UspCustomView_icon)
-            ?.let { imageView.setImageDrawable(it) }
-        attributes.getString(R.styleable.UspCustomView_caption_text)?.let { textView.text = it }
-
-        attributes.recycle()
+        setViewDimensionsPx(binding.imageView, imageViewWidth, imageViewHeight)
+        iconDrawable?.let { binding.imageView.setImageDrawable(it) }
+        captionText?.let { binding.textView.text = it }
     }
 
     fun setText(message: String) {
-        textView.text = message
+        binding.textView.text = message
     }
 
     fun setIcon(@DrawableRes resId: Int) {
-        imageView.setImageResource(resId)
+        binding.imageView.setImageResource(resId)
     }
 
     fun setIconDimensions(@DimenRes resIdWidth: Int, @DimenRes resIdHeight: Int) {
         resources?.let {
             setViewDimensionsPx(
-                imageView,
+                binding.imageView,
                 it.getDimensionPixelSize(resIdWidth),
                 it.getDimensionPixelSize(resIdHeight)
             )
@@ -72,11 +80,15 @@ class UspCustomView @JvmOverloads constructor(
     }
 
     private fun setViewDimensionsPx(view: View, width: Int, height: Int) {
-        if (width <= -3 || height <= -3) return
+        if (width <= NOT_SET_BY_ATTR || height <= NOT_SET_BY_ATTR) return
         val lp = view.layoutParams as LinearLayout.LayoutParams
         view.layoutParams = LinearLayout.LayoutParams(lp).apply {
             this.width = width
             this.height = height
         }
+    }
+
+    companion object {
+        private const val NOT_SET_BY_ATTR = -3
     }
 }

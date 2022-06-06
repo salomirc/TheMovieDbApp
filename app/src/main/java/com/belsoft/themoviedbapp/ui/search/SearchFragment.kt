@@ -80,10 +80,6 @@ class SearchFragment : HideKeyboardReadyFragment() {
     private fun initializeUI() {
         binding.apply {
 
-            backImageButton.setOnClickListener {
-                requireActivity().onBackPressed()
-            }
-
             recyclerView.apply {
                 layoutManager = LinearLayoutManager(activity)
                 adapter = SearchListAdapter {

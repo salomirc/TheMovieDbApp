@@ -20,7 +20,7 @@ class SearchListAdapter(
         RecyclerView.ViewHolder(binding.root) {
         init {
             binding.root.setOnClickListener {
-                onItemClick(items[adapterPosition])
+                onItemClick(items[bindingAdapterPosition])
             }
         }
     }
