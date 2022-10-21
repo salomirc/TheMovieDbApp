@@ -1,14 +1,18 @@
 package com.belsoft.themoviedbapp.components.view
 
 import android.content.Context
+import android.graphics.Color
 import android.graphics.drawable.Drawable
 import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.FrameLayout
 import android.widget.LinearLayout
+import androidx.annotation.AttrRes
+import androidx.annotation.ColorInt
 import androidx.annotation.DimenRes
 import androidx.annotation.DrawableRes
+import androidx.core.content.res.use
 import com.belsoft.themoviedbapp.R
 import com.belsoft.themoviedbapp.databinding.UspCustomViewBinding
 
@@ -16,7 +20,7 @@ class UspCustomView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = R.attr.uspCustomViewStyle,
-    defStyleRes: Int = 0
+    defStyleRes: Int = R.style.UspCustomViewDefaultStyle
 ) : FrameLayout(context, attrs, defStyleAttr, defStyleRes) {
 
     private val binding = UspCustomViewBinding.inflate(
@@ -38,7 +42,7 @@ class UspCustomView @JvmOverloads constructor(
         var iconDrawable: Drawable? = null
         var captionText: String? = null
 
-        context.obtainStyledAttributes(
+        context.theme.obtainStyledAttributes(
             attrs,
             R.styleable.UspCustomView,
             defStyleAttr,
@@ -59,6 +63,7 @@ class UspCustomView @JvmOverloads constructor(
         setViewDimensionsPx(binding.imageView, imageViewWidth, imageViewHeight)
         iconDrawable?.let { binding.imageView.setImageDrawable(it) }
         captionText?.let { binding.textView.text = it }
+
     }
 
     fun setText(message: String) {
@@ -90,5 +95,20 @@ class UspCustomView @JvmOverloads constructor(
 
     companion object {
         private const val NOT_SET_BY_ATTR = -3
+    }
+}
+
+@ColorInt
+fun Context.getThemeColor(
+    @AttrRes themeAttrId: Int
+): Int {
+    return theme.obtainStyledAttributes(
+        intArrayOf(themeAttrId)
+    ).run {
+        try {
+            getColor(0, Color.MAGENTA)
+        } finally {
+            recycle()
+        }
     }
 }

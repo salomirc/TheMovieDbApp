@@ -133,8 +133,8 @@ class MainActivity : BaseActivity() {
                 }
             }
             internetConnDialog = MaterialAlertDialogBuilder(this)
-                .setView(UspCustomView(this))
-//                .setView(viewBinding.root)
+//                .setView(UspCustomView(this))
+                .setView(viewBinding.root)
 //                .setTitle(R.string.internet_connection)
 //                .setMessage(R.string.no_internet_connection)
 //                .setPositiveButton(R.string.ok_button_txt, null)

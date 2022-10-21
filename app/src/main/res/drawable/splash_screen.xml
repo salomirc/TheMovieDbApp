@@ -1,13 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<!-- The android:opacity=”opaque” this is critical in preventing a flash of black as your theme transitions. -->
-<layer-list xmlns:android="http://schemas.android.com/apk/res/android" android:opacity="opaque">
+<!-- The android:opacity=”opaque” this is critical in preventing a flash of black as your theme
+transitions. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android"
+    android:opacity="opaque">
     <!-- The background color, preferably the same as your normal theme -->
-    <item android:drawable="?attr/colorAccentCustom"/>
+    <item android:drawable="?attr/colorAccentCustom" />
     <!-- Your product logo - 144dp color version of your app icon -->
-    <item android:top="0dp" android:right="0dp" android:bottom="0dp" android:left="0dp">
+    <item
+        android:bottom="0dp"
+        android:left="0dp"
+        android:right="0dp"
+        android:top="0dp">
         <bitmap
-            android:src="@drawable/the_movie_db_icon"
-            android:gravity="center"/>
+            android:gravity="center"
+            android:src="@drawable/the_movie_db_icon" />
     </item>
 </layer-list>
