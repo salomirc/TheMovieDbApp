@@ -20,17 +20,17 @@ class InjectorUtils private constructor(context: Context) {
         }
     }
 
-    private val requestHelper = RequestHelper(context)
+    private val networkRepository = RequestHelper(context)
 
     fun provideMainViewModelFactory(): ViewModelFactory<MainViewModel> {
         return ViewModelFactory {
-            MainViewModel(requestHelper)
+            MainViewModel(networkRepository)
         }
     }
 
     fun provideSearchViewModelFactory(mainViewModel: MainViewModel): ViewModelFactory<SearchViewModel> {
         return ViewModelFactory {
-            SearchViewModel(mainViewModel, requestHelper)
+            SearchViewModel(mainViewModel, networkRepository)
         }
     }
 }

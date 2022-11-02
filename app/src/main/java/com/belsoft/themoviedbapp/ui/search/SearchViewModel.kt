@@ -17,12 +17,12 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class SearchViewModel(private val mainViewModel: IMainViewModel,
-                      private val requestHelper: IRequestHelper) : BaseViewModel() {
+                      private val networkRepository: IRequestHelper) : BaseViewModel() {
 
     var isInitialised = false
 
     val connectionLiveData: ConnectionLiveData
-        get() = requestHelper.connectionLiveData
+        get() = networkRepository.connectionLiveData
 
     private val _searchSelectItems = MutableLiveData<List<SearchSelectItemModel>>()
     val searchSelectItems: LiveData<List<SearchSelectItemModel>> = _searchSelectItems
@@ -50,7 +50,7 @@ class SearchViewModel(private val mainViewModel: IMainViewModel,
 
         isVisibleProgressBar.value = true
         val result: MovieDbResponseModel? = withContext(Dispatchers.IO) {
-            requestHelper.getMovieDbSearch(API_KEY, search)
+            networkRepository.getMovieDbSearch(API_KEY, search)
         }
 
         result?.let {
