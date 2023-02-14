@@ -23,14 +23,14 @@ class InjectorUtils private constructor(context: Context) {
     private val networkRepository = RequestHelper(context)
 
     fun provideMainViewModelFactory(): ViewModelFactory<MainViewModel> {
-        return ViewModelFactory {
-            MainViewModel(networkRepository)
-        }
+        return ViewModelFactory(object : Provider<MainViewModel> {
+            override fun get() = MainViewModel(networkRepository)
+        })
     }
 
     fun provideSearchViewModelFactory(mainViewModel: MainViewModel): ViewModelFactory<SearchViewModel> {
-        return ViewModelFactory {
-            SearchViewModel(mainViewModel, networkRepository)
-        }
+        return ViewModelFactory(object : Provider<SearchViewModel> {
+            override fun get() = SearchViewModel(mainViewModel, networkRepository)
+        })
     }
 }

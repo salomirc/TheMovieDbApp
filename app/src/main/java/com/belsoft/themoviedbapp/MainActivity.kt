@@ -81,22 +81,22 @@ class MainActivity : BaseActivity() {
 
     private fun initializeUI() {
         //SingleEvent received from ViewModel
-        viewModel.toastMessage.observe(this, { message ->
+        viewModel.toastMessage.observe(this) { message ->
             // Update the cached copy of the words in the adapter.
             message?.let {
                 displayToastMessage(this, resources.getString(it))
             }
-        })
+        }
 
         //SingleEvent received from ViewModel
-        viewModel.toastMessageString.observe(this, { message ->
+        viewModel.toastMessageString.observe(this) { message ->
             // Update the cached copy of the words in the adapter.
             message?.let {
                 displayToastMessage(this, it)
             }
-        })
+        }
 
-        viewModel.connectionLiveData.observe(this, {
+        viewModel.connectionLiveData.observe(this) {
             Log.d("ConnectionLiveData", "MainActivity observe() called, $it")
             when {
                 !it.isConnected && it.wasConnected -> {
@@ -106,9 +106,9 @@ class MainActivity : BaseActivity() {
                     viewModel.setConnectionDialogState(false)
                 }
             }
-        })
+        }
 
-        viewModel.connectionDialogState.observe(this, {
+        viewModel.connectionDialogState.observe(this) {
             it?.let {
                 if (it) {
                     showNoInternetConnectionAlertDialog()
@@ -116,7 +116,7 @@ class MainActivity : BaseActivity() {
                     hideNoInternetConnectionAlertDialog()
                 }
             }
-        })
+        }
     }
 
     private fun displayToastMessage(context: Context, message: String) {

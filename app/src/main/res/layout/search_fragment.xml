@@ -82,18 +82,18 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/searchView" />
 
-<!--        <com.belsoft.themoviedbapp.components.view.UspCustomView-->
-<!--            android:layout_width="0dp"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            app:caption_text="@string/image_caption_txt_from_xml"-->
-<!--            app:icon="@drawable/the_movie_db_icon"-->
-<!--            app:icon_height="128dp"-->
-<!--            app:icon_width="128dp"-->
-<!--            app:layout_constraintBottom_toBottomOf="@id/recyclerView"-->
-<!--            app:layout_constraintEnd_toEndOf="@id/recyclerView"-->
-<!--            app:layout_constraintStart_toStartOf="@id/recyclerView"-->
-<!--            app:layout_constraintTop_toTopOf="@+id/recyclerView"-->
-<!--            app:layout_constraintVertical_bias="0.7" />-->
+        <com.belsoft.themoviedbapp.components.view.UspCustomView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:caption_text="@string/image_caption_txt_from_xml"
+            app:icon="@drawable/the_movie_db_icon"
+            app:icon_height="128dp"
+            app:icon_width="128dp"
+            app:layout_constraintBottom_toBottomOf="@id/recyclerView"
+            app:layout_constraintEnd_toEndOf="@id/recyclerView"
+            app:layout_constraintStart_toStartOf="@id/recyclerView"
+            app:layout_constraintTop_toTopOf="@+id/recyclerView"
+            app:layout_constraintVertical_bias="0.7" />
 
         <ProgressBar
             android:id="@+id/progressBar"
