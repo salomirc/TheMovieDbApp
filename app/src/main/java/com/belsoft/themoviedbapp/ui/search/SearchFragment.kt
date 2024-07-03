@@ -100,7 +100,7 @@ class SearchFragment : HideKeyboardReadyFragment() {
                     hideSoftKeyboard(binding.searchView)
                     binding.searchView.clearFocus()
                 }
-                activity!!.onBackPressed()
+                requireActivity().onBackPressed()
                 isRunning = false
             }
         }

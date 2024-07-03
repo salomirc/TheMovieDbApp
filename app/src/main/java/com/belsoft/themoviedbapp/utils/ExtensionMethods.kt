@@ -15,7 +15,7 @@ fun SearchView.onQueryTextChange(): Flow<String> = callbackFlow {
         }
 
         override fun onQueryTextChange(newText: String): Boolean {
-            offer(newText)
+            this@callbackFlow.trySend(newText).isSuccess
             return false
         }
 
